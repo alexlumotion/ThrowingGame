@@ -145,6 +145,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   torqueRange: 50
+  spawnClip: {fileID: 8300000, guid: 283964153dde2438cbd10692bf7cc3cb, type: 3}
+  destroyClip: {fileID: 8300000, guid: e216c5abcb7784ffcad58402860c219e, type: 3}
+  collisionClip: {fileID: 8300000, guid: ebbdeb1bde0b844c8b902da4042f40bb, type: 3}
+  enableCollisionFilter: 0
+  collisionVelocityThreshold: 1.5
+  collisionSoundCooldown: 0.2
 --- !u!50 &4863327953332135030
 Rigidbody2D:
   serializedVersion: 4

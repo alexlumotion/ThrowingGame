@@ -10,11 +10,35 @@ public class Shape : MonoBehaviour
 
     public float torqueRange = 50f;
 
+    [Header("Audio")]
+    public AudioClip spawnClip;
+    public AudioClip destroyClip;
+    public AudioClip collisionClip;
+
+    public bool enableCollisionFilter = false;
+    public float collisionVelocityThreshold = 1.5f;
+    public float collisionSoundCooldown = 0.2f;
+
+    private AudioSource audioSource;
+    private float lastCollisionSoundTime;
+
     public void Init(ShapePool shapePool)
     {
         pool = shapePool;
         startScale = Vector3.one;
         rb = GetComponent<Rigidbody2D>();
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 1f;
+        audioSource.rolloffMode = AudioRolloffMode.Linear;
+        audioSource.minDistance = 1f;
+        audioSource.maxDistance = 20f;
     }
 
     void OnEnable()
@@ -30,6 +54,25 @@ public class Shape : MonoBehaviour
             rb.angularDrag = 0.05f;
             rb.AddTorque(Random.Range(-torqueRange, torqueRange));
         }
+
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+            }
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 1f;
+            audioSource.rolloffMode = AudioRolloffMode.Linear;
+            audioSource.minDistance = 1f;
+            audioSource.maxDistance = 20f;
+        }
+
+        if (spawnClip != null)
+        {
+            audioSource.PlayOneShot(spawnClip);
+        }
     }
 
     void Update()
@@ -42,12 +85,40 @@ public class Shape : MonoBehaviour
 
     void OnMouseDown()
     {
+        if (destroyClip != null)
+        {
+            audioSource.PlayOneShot(destroyClip);
+        }
+
         GameObject fx = ParticlePool.Instance.GetFromPool();
         fx.transform.position = transform.position;
         fx.GetComponent<ParticleSystem>().Play();
         ParticlePool.Instance.ReturnToPoolDelayed(fx, 2f);
 
         StartCoroutine(Disappear());
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collisionClip != null && audioSource != null)
+        {
+            if (enableCollisionFilter)
+            {
+                float now = Time.time;
+                if (now - lastCollisionSoundTime > collisionSoundCooldown && collision.relativeVelocity.magnitude > collisionVelocityThreshold)
+                {
+                    audioSource.PlayOneShot(collisionClip);
+                    lastCollisionSoundTime = now;
+                }
+            }
+            else
+            {
+                if (collision.relativeVelocity.magnitude > collisionVelocityThreshold)
+                {
+                    audioSource.PlayOneShot(collisionClip);
+                }
+            }
+        }
     }
 
     private System.Collections.IEnumerator Disappear()
