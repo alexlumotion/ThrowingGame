@@ -12,7 +12,7 @@ public class Shape3DMaterials : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        meshRenderers = GetComponentsInChildren<MeshRenderer>();
+        //meshRenderers = GetComponentsInChildren<MeshRenderer>();
         SetMaterial();
     }
 

@@ -25,6 +25,8 @@ public class Shape3D : MonoBehaviour
     //private AudioSource audioSource;
     private float lastCollisionSoundTime;
 
+    [SerializeField] private Shape3DCollision shape3DCollision;
+
     public void Init(ShapePool3D shapePool)
     {
         pool = shapePool;
@@ -34,6 +36,10 @@ public class Shape3D : MonoBehaviour
 
     void OnEnable()
     {
+        Debug.Log("OnEnable");
+
+        shape3DCollision.SetOFFAnimation();
+
         transform.localScale = startScale;
 
         if (rb != null)
@@ -50,6 +56,11 @@ public class Shape3D : MonoBehaviour
         }
     }
 
+    void Awake()
+    {
+        shape3DCollision = GetComponent<Shape3DCollision>();
+    }
+
     void Update()
     {
         // прості межі сцени (z залишаємо біля 0, але можна додати обмеження за потреби)
@@ -57,7 +68,9 @@ public class Shape3D : MonoBehaviour
             Mathf.Abs(transform.position.x) > 20f ||
             transform.position.y > 20f)
         {
+            //shape3DCollision.SetOFFAnimation();
             pool.ReturnToPool(this);
+            //shape3DCollision.SetOFFAnimation();
         }
     }
 
@@ -68,7 +81,14 @@ public class Shape3D : MonoBehaviour
         fx.GetComponent<ParticleSystem>().Play();
         ParticlePool.Instance.ReturnToPoolDelayed(fx, 2f);
 
-        StartCoroutine(Disappear());
+        //StartCoroutine(Disappear());
+        rb.isKinematic = true;
+        shape3DCollision.OnClick(() =>
+        {
+            //Debug.Log("HUY 2");
+            //StartCoroutine(Disappear());
+            rb.isKinematic = false;
+        });
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -81,7 +101,6 @@ public class Shape3D : MonoBehaviour
                 if (now - lastCollisionSoundTime > collisionSoundCooldown &&
                     collision.relativeVelocity.magnitude > collisionVelocityThreshold)
                 {
-                    // audioSource.PlayOneShot(collisionClip);
                     lastCollisionSoundTime = now;
                 }
             }
