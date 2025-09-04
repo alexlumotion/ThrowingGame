@@ -19,7 +19,7 @@ public class Shape : MonoBehaviour
     public float collisionVelocityThreshold = 1.5f;
     public float collisionSoundCooldown = 0.2f;
 
-    private AudioSource audioSource;
+    //private AudioSource audioSource;
     private float lastCollisionSoundTime;
 
     public void Init(ShapePool shapePool)
@@ -28,17 +28,17 @@ public class Shape : MonoBehaviour
         startScale = Vector3.one;
         rb = GetComponent<Rigidbody2D>();
 
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
+        // audioSource = GetComponent<AudioSource>();
+        // if (audioSource == null)
+        // {
+        //     audioSource = gameObject.AddComponent<AudioSource>();
+        // }
 
-        audioSource.playOnAwake = false;
-        audioSource.spatialBlend = 1f;
-        audioSource.rolloffMode = AudioRolloffMode.Linear;
-        audioSource.minDistance = 1f;
-        audioSource.maxDistance = 20f;
+        // audioSource.playOnAwake = false;
+        // audioSource.spatialBlend = 1f;
+        // audioSource.rolloffMode = AudioRolloffMode.Linear;
+        // audioSource.minDistance = 1f;
+        // audioSource.maxDistance = 20f;
     }
 
     void OnEnable()
@@ -55,24 +55,24 @@ public class Shape : MonoBehaviour
             rb.AddTorque(Random.Range(-torqueRange, torqueRange));
         }
 
-        if (audioSource == null)
-        {
-            audioSource = GetComponent<AudioSource>();
-            if (audioSource == null)
-            {
-                audioSource = gameObject.AddComponent<AudioSource>();
-            }
-            audioSource.playOnAwake = false;
-            audioSource.spatialBlend = 1f;
-            audioSource.rolloffMode = AudioRolloffMode.Linear;
-            audioSource.minDistance = 1f;
-            audioSource.maxDistance = 20f;
-        }
+        // if (audioSource == null)
+        // {
+        //     audioSource = GetComponent<AudioSource>();
+        //     if (audioSource == null)
+        //     {
+        //         audioSource = gameObject.AddComponent<AudioSource>();
+        //     }
+        //     audioSource.playOnAwake = false;
+        //     audioSource.spatialBlend = 1f;
+        //     audioSource.rolloffMode = AudioRolloffMode.Linear;
+        //     audioSource.minDistance = 1f;
+        //     audioSource.maxDistance = 20f;
+        // }
 
-        if (spawnClip != null)
-        {
-            audioSource.PlayOneShot(spawnClip);
-        }
+        // if (spawnClip != null)
+        // {
+        //     audioSource.PlayOneShot(spawnClip);
+        //}
     }
 
     void Update()
@@ -85,10 +85,10 @@ public class Shape : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (destroyClip != null)
-        {
-            audioSource.PlayOneShot(destroyClip);
-        }
+        // if (destroyClip != null)
+        // {
+        //     audioSource.PlayOneShot(destroyClip);
+        // }
 
         GameObject fx = ParticlePool.Instance.GetFromPool();
         fx.transform.position = transform.position;
@@ -100,23 +100,24 @@ public class Shape : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collisionClip != null && audioSource != null)
+        //if (collisionClip != null && audioSource != null)
+        if (collisionClip != null)
         {
             if (enableCollisionFilter)
             {
                 float now = Time.time;
                 if (now - lastCollisionSoundTime > collisionSoundCooldown && collision.relativeVelocity.magnitude > collisionVelocityThreshold)
                 {
-                    audioSource.PlayOneShot(collisionClip);
+                    //audioSource.PlayOneShot(collisionClip);
                     lastCollisionSoundTime = now;
                 }
             }
             else
             {
-                if (collision.relativeVelocity.magnitude > collisionVelocityThreshold)
-                {
-                    audioSource.PlayOneShot(collisionClip);
-                }
+                // if (collision.relativeVelocity.magnitude > collisionVelocityThreshold)
+                // {
+                //     audioSource.PlayOneShot(collisionClip);
+                // }
             }
         }
     }
