@@ -26,7 +26,7 @@ public class Shape3DCollision : MonoBehaviour
     {
         OnComplete_local = onComplete;
 
-        transform.DORotate(Vector3.zero, 1f, RotateMode.Fast)
+        transform.DORotate(Vector3.zero, 0.5f, RotateMode.Fast)
                  .SetEase(Ease.Linear).OnComplete(() =>
                  {
                      //onComplete?.Invoke();
@@ -41,7 +41,7 @@ public class Shape3DCollision : MonoBehaviour
     public void OnAnimationCompleted()
     {
         sphere.SetParent(null);
-        sphere.DOMove(new Vector3(sphere.position.x, sphere.position.y + 1.5f, sphere.position.z), 0.5f)
+        sphere.DOMove(new Vector3(sphere.position.x, sphere.position.y + 4f, sphere.position.z), 0.75f)
         .SetEase(Ease.InQuad)
         .OnComplete(() =>
         {
@@ -49,9 +49,10 @@ public class Shape3DCollision : MonoBehaviour
             .SetEase(Ease.InQuad)
             .OnComplete(() =>
             {
-                OnComplete_local?.Invoke();
+                //OnComplete_local?.Invoke();
             });
         });
+        OnComplete_local?.Invoke();
     }
 
     public void ResetAnimator()
