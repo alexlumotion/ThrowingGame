@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using DG.Tweening;
-using UnityEditor.Callbacks;
 
 public class Shape3DCollision : MonoBehaviour
 {
@@ -40,18 +39,32 @@ public class Shape3DCollision : MonoBehaviour
 
     public void OnSphereStart()
     {
+
         sphere.SetParent(null);
-        sphere.DOMove(new Vector3(sphere.position.x, sphere.position.y + 4f, sphere.position.z), 0.75f)
-        .SetEase(Ease.InQuad)
+
+        Vector3 targetPosition = sphere.position + Vector3.up * 3f;
+        
+        sphere.DOMove(targetPosition, 3f)
+        .SetEase(Ease.InOutQuad)
         .OnComplete(() =>
         {
-            sphere.DOScale(Vector3.zero, 0.5f)
-            .SetEase(Ease.InQuad)
-            .OnComplete(() =>
-            {
-                //OnComplete_local?.Invoke();
-            });
+            // sphere.DOScale(Vector3.zero, 0.5f)
+            // .SetEase(Ease.InQuad)
+            // .OnComplete(() =>
+            // {
+            //           //OnComplete_local?.Invoke();
+            // });
         });
+
+        Vector3 start = sphere.localScale;
+        Vector3 peak  = start * 1.0f;   // значення на плато (можеш змінити)
+        Vector3 end   = start * 0.0f;   // приклад: йдемо до нуля
+
+        Sequence seq = DOTween.Sequence();
+        seq.Append(sphere.DOScale(peak, 0.5f).SetEase(Ease.InSine))
+           .AppendInterval(0.83f)
+           .Append(sphere.DOScale(end, 0.66f).SetEase(Ease.OutSine));
+
         OnComplete_local?.Invoke();
     }
 
