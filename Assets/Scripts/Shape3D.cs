@@ -82,12 +82,12 @@ public class Shape3D : MonoBehaviour
         ParticlePool.Instance.ReturnToPoolDelayed(fx, 2f);
 
         //StartCoroutine(Disappear());
-        rb.isKinematic = true;
+        //rb.isKinematic = true;
         shape3DCollision.OnClick(() =>
         {
             //Debug.Log("HUY 2");
             //StartCoroutine(Disappear());
-            rb.isKinematic = false;
+            //rb.isKinematic = false;
         });
     }
 
