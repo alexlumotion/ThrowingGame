@@ -24,12 +24,17 @@ public class Shape3DCollision : MonoBehaviour
         // transform.DORotate(Vector3.zero, 0.5f, RotateMode.Fast)
         //          .SetEase(Ease.Linear).OnComplete(() =>
         //          {
-                     //onComplete?.Invoke();
-                     sphere.SetParent(this.transform);
-                     sphere.localPosition = new Vector3(0, .25f, 0f);
-                     sphere.localScale = new Vector3(.25f, .25f, .25f);
-                     animator.SetTrigger("Play ON");
-                //  });
+        //onComplete?.Invoke();
+        sphere.SetParent(this.transform);
+        sphere.localPosition = new Vector3(0, .25f, 0f);
+        sphere.localScale = new Vector3(.25f, .25f, .25f);
+        animator.SetTrigger("Play ON");
+        //  });
+
+        // крутити навколо випадкової осі (можеш замінити на transform.up/forward/right)
+        Vector3 axis = rigidbody.angularVelocity.normalized;
+        // імпульс крутного моменту
+        rigidbody.AddTorque(axis * 2f, ForceMode.Impulse);
 
     }
 
@@ -52,10 +57,7 @@ public class Shape3DCollision : MonoBehaviour
 
     public void OnAnimationCompleted()
     {
-        // крутити навколо випадкової осі (можеш замінити на transform.up/forward/right)
-        Vector3 axis = rigidbody.angularVelocity.normalized;
-        // імпульс крутного моменту
-        rigidbody.AddTorque(axis * 2f, ForceMode.Impulse);
+
     }
 
     public void ResetAnimator()
