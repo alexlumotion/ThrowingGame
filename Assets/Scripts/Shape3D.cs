@@ -12,11 +12,6 @@ public class Shape3D : MonoBehaviour
     [Tooltip("Максимальна додаткова крутильна швидкість при появі")]
     public float torqueRange = 50f; // у 3D буде застосовано випадковий вектор крутіння
 
-    [Header("Audio")]
-    public AudioClip spawnClip;
-    public AudioClip destroyClip;
-    public AudioClip collisionClip;
-
     [Header("Collision sound filter")]
     public bool enableCollisionFilter = false;
     public float collisionVelocityThreshold = 1.5f;
@@ -36,8 +31,6 @@ public class Shape3D : MonoBehaviour
 
     void OnEnable()
     {
-        Debug.Log("OnEnable");
-
         shape3DCollision.SetOFFAnimation();
 
         transform.localScale = startScale;
@@ -81,6 +74,7 @@ public class Shape3D : MonoBehaviour
         fx.GetComponent<ParticleSystem>().Play();
         ParticlePool.Instance.ReturnToPoolDelayed(fx, 2f);
 
+
         //StartCoroutine(Disappear());
         //rb.isKinematic = true;
         shape3DCollision.OnClick(() =>
@@ -91,26 +85,6 @@ public class Shape3D : MonoBehaviour
         });
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collisionClip != null /* && audioSource != null */)
-        {
-            if (enableCollisionFilter)
-            {
-                float now = Time.time;
-                if (now - lastCollisionSoundTime > collisionSoundCooldown &&
-                    collision.relativeVelocity.magnitude > collisionVelocityThreshold)
-                {
-                    lastCollisionSoundTime = now;
-                }
-            }
-            else
-            {
-                // if (collision.relativeVelocity.magnitude > collisionVelocityThreshold)
-                //     audioSource.PlayOneShot(collisionClip);
-            }
-        }
-    }
 
     private System.Collections.IEnumerator Disappear()
     {

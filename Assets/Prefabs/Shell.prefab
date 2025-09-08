@@ -272,9 +272,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   torqueRange: 50
-  spawnClip: {fileID: 0}
-  destroyClip: {fileID: 0}
-  collisionClip: {fileID: 0}
   enableCollisionFilter: 0
   collisionVelocityThreshold: 1.5
   collisionSoundCooldown: 0.2
