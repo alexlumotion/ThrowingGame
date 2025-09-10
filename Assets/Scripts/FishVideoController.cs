@@ -15,15 +15,25 @@ public class FishVideoController : MonoBehaviour
     [Tooltip("Кліпи, де риби пливуть справа -> наліво")]
     [SerializeField] private VideoClip[] rightToLeftClips;
 
+    [Tooltip("Кліпи третьої категорії (інтерлюдія)")]
+    [SerializeField] private VideoClip[] interludeClips;
+
     [Header("Playback")]
     [SerializeField] private bool autoPlayOnStart = true;
     [SerializeField] private Direction startDirection = Direction.LeftToRight;
-
-    [Tooltip("Заборонити повтор того ж кліпу двічі поспіль")]
     [SerializeField] private bool avoidImmediateRepeat = true;
+
+    [Header("Interlude (кожні N секунд)")]
+    [Tooltip("Інтервал між інтерлюдіями в секундах (за замовчуванням 5 хв = 300с)")]
+    [Min(1f)] public float interludeIntervalSeconds = 300f;
 
     private Direction currentDirection;
     private VideoClip lastPlayedClip;
+
+    // Інтерлюдія/таймер
+    private float nextInterludeAt = Mathf.Infinity;
+    private bool interludePending = false;     // позначка: треба вставити інтерлюдію після поточного кліпу
+    private bool isInterludePlaying = false;   // зараз грає інтерлюдія
 
     void Reset()
     {
@@ -32,25 +42,27 @@ public class FishVideoController : MonoBehaviour
 
     void Awake()
     {
-        //if (!videoPlayer) videoPlayer = GetComponent<VideoPlayer>();
-        //if (!videoPlayer) videoPlayer = gameObject.AddComponent<VideoPlayer>();
+        if (!videoPlayer) videoPlayer = GetComponent<VideoPlayer>();
+        if (!videoPlayer) videoPlayer = gameObject.AddComponent<VideoPlayer>();
 
         videoPlayer.isLooping = false;
         videoPlayer.playOnAwake = false;
         videoPlayer.source = VideoSource.VideoClip;
 
         videoPlayer.loopPointReached += OnVideoEnded;
-        // На випадок помилок відтворення — спробуємо перейти далі
         videoPlayer.errorReceived += (vp, msg) =>
         {
             Debug.LogWarning($"[FishVideoController] Video error: {msg}");
-            PlayNext(currentDirection);
+            // якщо сталася помилка — спробуємо перейти далі за поточним станом
+            HandleNextOnEnd();
         };
     }
 
     void Start()
     {
         currentDirection = startDirection;
+        ScheduleNextInterlude(); // стартуємо таймер
+
         if (autoPlayOnStart)
             PlayNext(currentDirection);
     }
@@ -63,35 +75,112 @@ public class FishVideoController : MonoBehaviour
 
     private void OnVideoEnded(VideoPlayer vp)
     {
-        // коли кліп закінчився — запускаємо наступний у поточному напрямку
-        //PlayNext(currentDirection);
-        ToggleDirection();
+        HandleNextOnEnd();
     }
 
-    /// <summary>
-    /// Зовнішній виклик: встановити напрямок і одразу програти наступний кліп.
-    /// Напрямок: LeftToRight або RightToLeft.
-    /// </summary>
-    public void PlayDirection(Direction dir)
+    private void HandleNextOnEnd()
     {
-        currentDirection = dir;
+        // Якщо щойно завершилась інтерлюдія — повертаємось до нормального циклу
+        if (isInterludePlaying)
+        {
+            isInterludePlaying = false;
+            ScheduleNextInterlude(); // переносимо таймер
+            PlayNext(currentDirection); // продовжуємо з тим самим напрямком, що був до інтерлюдії
+            return;
+        }
+
+        // Якщо настав час інтерлюдії або вона вже запланована — граємо інтерлюдію
+        if (interludePending || Time.time >= nextInterludeAt)
+        {
+            interludePending = false;
+            PlayInterlude();
+            return;
+        }
+
+        // 🔹 Нове: міняємо напрямок після кожного звичайного кліпу
+        currentDirection = currentDirection == Direction.LeftToRight
+            ? Direction.RightToLeft
+            : Direction.LeftToRight;
+
         PlayNext(currentDirection);
     }
 
     /// <summary>
-    /// Зовнішній виклик: перемкнути напрямок (тумблер) і програти наступний кліп.
+    /// Зовнішній виклик: встановити напрямок і одразу програти наступний кліп.
+    /// </summary>
+    public void PlayDirection(Direction dir)
+    {
+        currentDirection = dir;
+        // не зриваємо логіку інтерлюдії — просто граємо наступний згідно стану
+        if (!isInterludePlaying)
+            PlayNext(currentDirection);
+    }
+
+    /// <summary>
+    /// Зовнішній виклик: перемкнути напрямок (тумблер) і програти наступний кліп (якщо не грає інтерлюдія).
     /// </summary>
     public void ToggleDirection()
     {
         currentDirection = currentDirection == Direction.LeftToRight
             ? Direction.RightToLeft
             : Direction.LeftToRight;
-        PlayNext(currentDirection);
+
+        if (!isInterludePlaying)
+            PlayNext(currentDirection);
     }
 
     /// <summary>
-    /// Запустити випадковий кліп у зазначеному напрямку.
+    /// Можеш змінювати інтервал під час роботи.
     /// </summary>
+    public void SetInterludeIntervalSeconds(float seconds)
+    {
+        interludeIntervalSeconds = Mathf.Max(1f, seconds);
+        // перескеджулити наступну інтерлюдію від поточного моменту,
+        // але без переривання поточного кліпу
+        ScheduleNextInterlude();
+    }
+
+    /// <summary>
+    /// Вручну “попросити” інтерлюдію: спрацює після завершення поточного кліпу.
+    /// </summary>
+    public void RequestInterlude()
+    {
+        interludePending = true;
+    }
+
+    private void ScheduleNextInterlude()
+    {
+        nextInterludeAt = Time.time + interludeIntervalSeconds;
+        interludePending = false;
+    }
+
+    private void PlayInterlude()
+    {
+        var pool = interludeClips;
+        if (pool == null || pool.Length == 0)
+        {
+            Debug.LogWarning("[FishVideoController] No interlude clips assigned. Continue normal playback.");
+            ScheduleNextInterlude();
+            PlayNext(currentDirection);
+            return;
+        }
+
+        var next = PickClip(pool);
+        if (next == null)
+        {
+            Debug.LogWarning("[FishVideoController] Failed to pick interlude clip. Continue normal playback.");
+            ScheduleNextInterlude();
+            PlayNext(currentDirection);
+            return;
+        }
+
+        isInterludePlaying = true;
+        lastPlayedClip = next;
+        videoPlayer.Stop();
+        videoPlayer.clip = next;
+        videoPlayer.Play();
+    }
+
     private void PlayNext(Direction dir)
     {
         var pool = GetPool(dir);
@@ -124,7 +213,6 @@ public class FishVideoController : MonoBehaviour
     {
         if (pool.Length == 1) return pool[0];
 
-        // випадковий кліп, без миттєвого повтору (якщо увімкнено)
         int tries = 0;
         VideoClip choice;
         do
@@ -137,6 +225,7 @@ public class FishVideoController : MonoBehaviour
         return choice;
     }
 
-    // Додатково: зовнішній доступ до поточного напрямку
-    public Direction GetCurrentDirection() => currentDirection;
+    // (опційно) якщо хочеш форсувати інтерлюдію по таймеру без очікування кінця кліпу:
+    // можеш у Update перевіряти час і ставити interludePending = true
+    // але ти просив чекати завершення поточного відео — тож тут не потрібно.
 }

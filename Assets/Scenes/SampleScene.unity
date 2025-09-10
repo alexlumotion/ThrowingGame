@@ -519,9 +519,12 @@ MonoBehaviour:
   - {fileID: 32900000, guid: 9095c2e0ce446431fa1077e1979b31c9, type: 3}
   - {fileID: 32900000, guid: 812f0c91d03fb41cb9200d1e9ae85e06, type: 3}
   - {fileID: 32900000, guid: a8d552b27869d4e7c94e39d850ca68d3, type: 3}
+  interludeClips:
+  - {fileID: 32900000, guid: b4b78ec629c154c3e8c24599620b04dc, type: 3}
   autoPlayOnStart: 1
   startDirection: 0
   avoidImmediateRepeat: 1
+  interludeIntervalSeconds: 300
 --- !u!1 &762901945
 GameObject:
   m_ObjectHideFlags: 0
@@ -1462,6 +1465,6 @@ SceneRoots:
   - {fileID: 994749008}
   - {fileID: 40751045}
   - {fileID: 683976074}
-  - {fileID: 1543688186}
   - {fileID: 1484051008}
+  - {fileID: 1543688186}
   - {fileID: 1585496567}
