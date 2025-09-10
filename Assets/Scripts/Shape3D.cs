@@ -69,10 +69,10 @@ public class Shape3D : MonoBehaviour
 
     void OnMouseDown()
     {
-        GameObject fx = ParticlePool.Instance.GetFromPool();
-        fx.transform.position = transform.position;
-        fx.GetComponent<ParticleSystem>().Play();
-        ParticlePool.Instance.ReturnToPoolDelayed(fx, 2f);
+        //GameObject fx = ParticlePool.Instance.GetFromPool();
+        //fx.transform.position = transform.position;
+        //fx.GetComponent<ParticleSystem>().Play();
+        //ParticlePool.Instance.ReturnToPoolDelayed(fx, 2f);
 
 
         //StartCoroutine(Disappear());
@@ -83,6 +83,10 @@ public class Shape3D : MonoBehaviour
             //StartCoroutine(Disappear());
             //rb.isKinematic = false;
         });
+
+        ShellFlipbookPool.Instance.StartFlipbook(shape3DCollision.sphere.position);
+
+
     }
 
 
