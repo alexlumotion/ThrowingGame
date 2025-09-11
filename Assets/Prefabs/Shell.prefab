@@ -151,6 +151,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Shell
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b5eb336eb8cc14bfda8eec0b2839ac9a, type: 3}
+      propertyPath: m_TagString
+      value: Shell
+      objectReference: {fileID: 0}
     - target: {fileID: 5651977886119512364, guid: b5eb336eb8cc14bfda8eec0b2839ac9a, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 

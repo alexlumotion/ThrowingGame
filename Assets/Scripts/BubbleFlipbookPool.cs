@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShellFlipbookPool : MonoBehaviour
+public class BubbleFlipbookPool : MonoBehaviour
 {
-    public static ShellFlipbookPool Instance { get; private set; }
+    public static BubbleFlipbookPool Instance { get; private set; }
     public GameObject flipbookPrefab;
     public int poolSize = 10;
 
@@ -19,7 +19,6 @@ public class ShellFlipbookPool : MonoBehaviour
         for (int i = 0; i < poolSize; i++)
         {
             GameObject obj = Instantiate(flipbookPrefab, transform);
-            //obj.SetActive(false);
             pool.Enqueue(obj);
         }
     }
@@ -34,14 +33,12 @@ public class ShellFlipbookPool : MonoBehaviour
         {
             // якщо всі зайняті — можна або створити новий, або повернути null
             GameObject obj = Instantiate(flipbookPrefab, transform);
-            //obj.SetActive(false);
             return obj;
         }
     }
 
     public void ReturnToPool(GameObject obj)
     {
-        //obj.SetActive(false);
         obj.transform.position = new(20f, 0f, 0f);
         pool.Enqueue(obj);
     }

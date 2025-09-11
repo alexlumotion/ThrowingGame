@@ -77,18 +77,18 @@ public class Shape3D : MonoBehaviour
 
         //StartCoroutine(Disappear());
         //rb.isKinematic = true;
-        shape3DCollision.OnClick(() =>
-        {
-            //Debug.Log("HUY 2");
-            //StartCoroutine(Disappear());
-            //rb.isKinematic = false;
-        });
 
-        ShellFlipbookPool.Instance.StartFlipbook(shape3DCollision.sphere.position);
+        // shape3DCollision.OnClick(() => { });
+        // ShellFlipbookPool.Instance.StartFlipbook(shape3DCollision.sphere.position);
 
 
     }
 
+    public void OnClick()
+    {
+        shape3DCollision.OnClick(() => { });
+        ShellFlipbookPool.Instance.StartFlipbook(shape3DCollision.sphere.position);
+    }
 
     private System.Collections.IEnumerator Disappear()
     {
