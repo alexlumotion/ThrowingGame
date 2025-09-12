@@ -40,7 +40,7 @@ public class ClickRouter : MonoBehaviour
             if (hit.collider.tag == "Shell")
             {
                 //Debug.Log("SHELL: " + hit.transform.position);
-                hit.transform.GetComponent<Shape3D>().OnClick();
+                hit.transform.GetComponent<Shape3D>().OnClick(new Vector3(hit.point.x, hit.point.y + 2, hit.point.z));
             }
             else if (hit.collider.tag == "Background")
             {

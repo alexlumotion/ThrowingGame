@@ -84,10 +84,11 @@ public class Shape3D : MonoBehaviour
 
     }
 
-    public void OnClick()
+    public void OnClick(Vector3 tPosition)
     {
         shape3DCollision.OnClick(() => { });
-        ShellFlipbookPool.Instance.StartFlipbook(shape3DCollision.sphere.position);
+        //ShellFlipbookPool.Instance.StartFlipbook(shape3DCollision.sphere.position);
+        ShellFlipbookPool.Instance.StartFlipbook(tPosition);
     }
 
     private System.Collections.IEnumerator Disappear()

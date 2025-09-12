@@ -46,8 +46,8 @@ public class BubbleFlipbookPool : MonoBehaviour
     public void StartFlipbook(Vector3 targetPosition)
     {
         GameObject target = GetFromPool();
-        target.transform.position = new Vector3(targetPosition.x, targetPosition.y, targetPosition.z - 1);
-        target.GetComponent<ShellFlipbook>().PlayOnce();
+        target.transform.position = new Vector3(targetPosition.x, targetPosition.y - 1f, targetPosition.z - .5f);
+        target.GetComponent<BubbleFlipbook>().PlayOnce();
     }
 
 }

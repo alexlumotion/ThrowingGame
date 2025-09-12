@@ -31,5 +31,14 @@ public class BubbleFlipbook : MonoBehaviour
 
         videoPlayerBubble.Play();
         videoPlayerWave.Play();
+
+        videoPlayerBubble.loopPointReached += OnVideoEnded;
     }
+
+    private void OnVideoEnded(VideoPlayer vp)
+    {
+        //transform.position = new Vector3(100f, 0f, 0f);
+        BubbleFlipbookPool.Instance.ReturnToPool(this.gameObject);
+    }
+
 }
