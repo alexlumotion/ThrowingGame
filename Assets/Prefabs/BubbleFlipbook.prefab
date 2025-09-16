@@ -46,8 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 808379fca5b10482fbb0bc2ca51b5465, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  videoPlayerBubble: {fileID: 4109810900115114935}
-  videoPlayerWave: {fileID: 52415498665108665}
+  vpBubble: {fileID: 4109810900115114935}
+  vpWave: {fileID: 52415498665108665}
   bubbleVideos:
   - {fileID: 32900000, guid: 5242b6f23e83040eda34894eaed5272f, type: 3}
   - {fileID: 32900000, guid: e0eacfd107e0541cd8fd6960467fd747, type: 3}
@@ -68,6 +68,13 @@ MonoBehaviour:
   - {fileID: 32900000, guid: a632df4f8fe2f4d238a18e4a856bb9ee, type: 3}
   - {fileID: 32900000, guid: ae787c0fddb6841c8996de550141ad73, type: 3}
   - {fileID: 32900000, guid: 3aeb503d5fca44409bf04f25aa87a550, type: 3}
+  bubbleRenderer: {fileID: 6207569654571401317}
+  waveRenderer: {fileID: 8002962524671531949}
+  bubbleImage: {fileID: 0}
+  waveImage: {fileID: 0}
+  bubbleCanvas: {fileID: 0}
+  waveCanvas: {fileID: 0}
+  fadeInDuration: 0.15
   start: 0
 --- !u!1 &2609406949571124435
 GameObject:

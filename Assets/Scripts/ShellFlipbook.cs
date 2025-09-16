@@ -4,55 +4,42 @@ using UnityEngine.Video;
 
 public class ShellFlipbook : MonoBehaviour
 {
+    [Header("Players")]
+    public VideoPlayer vpWave;
+    public VideoPlayer vpShell;
+    public VideoPlayer vpBubble;
 
-    public VideoPlayer videoPlayerBubble;
-    public VideoPlayer videoPlayerShell;
-
-    public VideoClip[] bubbleVideos;
+    [Header("Clips")]
+    public VideoClip[] waveVideos;
     public VideoClip[] shellVideos;
+    public VideoClip[] bubbleVideos;
 
+    [Header("Sprite Renderers (кожен плеєр рендерить у свій матеріал/RT)")]
+    public SpriteRenderer waveRenderer;
+    public SpriteRenderer shellRenderer;
+    public SpriteRenderer bubbleRenderer;
 
-    public SpriteRenderer spriteShell;
-    public SpriteRenderer spriteBubble;
-    public Sprite[] shellFrames;
-     public Sprite[] bubbleFrames;
+    [Header("Плавний фейд увімкнення (сек)")]
+    public float fadeInDuration = 0.15f;
 
-    [SerializeField] private Sprite[] frames_1;
-    [SerializeField] private Sprite[] frames_2;
-    [SerializeField] private Sprite[] frames_3;
-    [SerializeField] private Sprite[] frames_4;
-    [SerializeField] private Sprite[] frames_5;
-    [SerializeField] private Sprite[] frames_6;
-    [SerializeField] private Sprite[] frames_7;
-    [SerializeField] private Sprite[] frames_8;
-    [SerializeField] private Sprite[] frames_9;
-    [SerializeField] private Sprite[] frames_10;
-    [SerializeField] private Sprite[] frames_11;
-    [SerializeField] private Sprite[] frames_12;
-
-
-    [SerializeField] private Sprite[] frames_bubble_1;
-    [SerializeField] private Sprite[] frames_bubble_2;
-    [SerializeField] private Sprite[] frames_bubble_3;
-    [SerializeField] private Sprite[] frames_bubble_4;
-    [SerializeField] private Sprite[] frames_bubble_5;
-    [SerializeField] private Sprite[] frames_bubble_6;
-    [SerializeField] private Sprite[] frames_bubble_7;
-    [SerializeField] private Sprite[] frames_bubble_8;
-    [SerializeField] private Sprite[] frames_bubble_9;
-    [SerializeField] private Sprite[] frames_bubble_10;
-    [SerializeField] private Sprite[] frames_bubble_11;
-    [SerializeField] private Sprite[] frames_bubble_12;
-    [SerializeField] private Sprite[] frames_bubble_13;
-    [SerializeField] private Sprite[] frames_bubble_14;
-    [SerializeField] private Sprite[] frames_bubble_15;
-    [SerializeField] private Sprite[] frames_bubble_16;
-    [SerializeField] private Sprite[] frames_bubble_17;
-    [SerializeField] private Sprite[] frames_bubble_18;
-
-    public float fps = 30f;
-
+    [Header("Тригер для тесту з інспектора")]
     public bool start = false;
+
+    // внутрішній стан
+    int preparedCount = 0;
+    int finishedCount = 0;
+
+    void Awake()
+    {
+        SetupPlayer(vpWave);
+        SetupPlayer(vpShell);
+        SetupPlayer(vpBubble);
+
+        // стартово сховати всі візуали
+        HideRendererImmediate(waveRenderer);
+        HideRendererImmediate(shellRenderer);
+        HideRendererImmediate(bubbleRenderer);
+    }
 
     void Update()
     {
@@ -63,77 +50,143 @@ public class ShellFlipbook : MonoBehaviour
         }
     }
 
+    void SetupPlayer(VideoPlayer vp)
+    {
+        if (!vp) return;
+        vp.playOnAwake = false;
+        vp.isLooping = false;
+        vp.waitForFirstFrame = true; // не показувати, поки перший кадр не готовий
+    }
+
     public void PlayOnce()
-    { 
-        int randomBubble = Random.Range(0, 18);
-        int randomShell = Random.Range(0, 12);
-
-        videoPlayerBubble.clip = bubbleVideos[randomBubble];
-        videoPlayerShell.clip = shellVideos[randomShell];
-
-        videoPlayerBubble.Play();
-        videoPlayerShell.Play();
-
-        videoPlayerShell.loopPointReached += OnVideoEnded;
-    }
-
-    private void OnVideoEnded(VideoPlayer vp)
     {
-        //transform.position = new Vector3(100f, 0f, 0f);
-        ShellFlipbookPool.Instance.ReturnToPool(this.gameObject);
-    }
-
-    public void PlayOnceOld()
-    {
-        int randomShell = Random.Range(0, 12);
-        if (randomShell == 0) { shellFrames = frames_1; }
-        else if (randomShell == 1) { shellFrames = frames_2; }
-        else if (randomShell == 2) { shellFrames = frames_3; }
-        else if (randomShell == 3) { shellFrames = frames_4; }
-        else if (randomShell == 4) { shellFrames = frames_5; }
-        else if (randomShell == 5) { shellFrames = frames_6; }
-        else if (randomShell == 6) { shellFrames = frames_7; }
-        else if (randomShell == 7) { shellFrames = frames_8; }
-        else if (randomShell == 8) { shellFrames = frames_9; }
-        else if (randomShell == 9) { shellFrames = frames_10; }
-        else if (randomShell == 10) { shellFrames = frames_11; }
-        else { shellFrames = frames_12; }
-
-        int randomBubble = Random.Range(0, 18);
-        if (randomBubble == 0) { bubbleFrames = frames_bubble_1; }
-        else if (randomBubble == 1) { bubbleFrames = frames_bubble_2; }
-        else if (randomBubble == 2) { bubbleFrames = frames_bubble_3; }
-        else if (randomBubble == 3) { bubbleFrames = frames_bubble_4; }
-        else if (randomBubble == 4) { bubbleFrames = frames_bubble_5; }
-        else if (randomBubble == 5) { bubbleFrames = frames_bubble_6; }
-        else if (randomBubble == 6) { bubbleFrames = frames_bubble_7; }
-        else if (randomBubble == 7) { bubbleFrames = frames_bubble_8; }
-        else if (randomBubble == 8) { bubbleFrames = frames_bubble_9; }
-        else if (randomBubble == 9) { bubbleFrames = frames_bubble_10; }
-        else if (randomBubble == 10) { bubbleFrames = frames_bubble_11; }
-        else if (randomBubble == 11) { bubbleFrames = frames_bubble_12; }
-        else if (randomBubble == 12) { bubbleFrames = frames_bubble_13; }
-        else if (randomBubble == 13) { bubbleFrames = frames_bubble_14; }
-        else if (randomBubble == 14) { bubbleFrames = frames_bubble_15; }
-        else if (randomBubble == 15) { bubbleFrames = frames_bubble_16; }
-        else if (randomBubble == 16) { bubbleFrames = frames_bubble_17; }
-        else { bubbleFrames = frames_bubble_18; }
-
-        StartCoroutine(PlayFlipbook(spriteShell, shellFrames, true));
-        StartCoroutine(PlayFlipbook(spriteBubble, bubbleFrames, false));
-    }
-
-    private IEnumerator PlayFlipbook(SpriteRenderer renderSprite, Sprite[] tSprites, bool isReturn)
-    {
-        float delay = 1f / fps;
-        foreach (var frame in tSprites)
+        if (!vpWave || !vpShell || !vpBubble ||
+            waveVideos == null || shellVideos == null || bubbleVideos == null ||
+            waveVideos.Length == 0 || shellVideos.Length == 0 || bubbleVideos.Length == 0)
         {
-            renderSprite.sprite = frame;
-            yield return new WaitForSeconds(delay);
+            Debug.LogWarning("ShellFlipbook: не налаштовані VideoPlayer або масиви кліпів.");
+            return;
         }
-        if (isReturn)
+
+        // скинути попередні підписки/стан
+        vpWave.prepareCompleted  -= OnPrepared;
+        vpShell.prepareCompleted -= OnPrepared;
+        vpBubble.prepareCompleted-= OnPrepared;
+
+        vpWave.loopPointReached  -= OnOneFinished;
+        vpShell.loopPointReached -= OnOneFinished;
+        vpBubble.loopPointReached-= OnOneFinished;
+
+        preparedCount = 0;
+        finishedCount = 0;
+
+        // сховати візуал, щоб не було мигу між кліпами
+        HideRendererImmediate(waveRenderer);
+        HideRendererImmediate(shellRenderer);
+        HideRendererImmediate(bubbleRenderer);
+
+        // зупинити, призначити випадкові кліпи, підписатись і підготувати
+        vpWave.Stop();
+        vpShell.Stop();
+        vpBubble.Stop();
+
+        vpWave.clip  = waveVideos[Random.Range(0, waveVideos.Length)];
+        vpShell.clip = shellVideos[Random.Range(0, shellVideos.Length)];
+        vpBubble.clip= bubbleVideos[Random.Range(0, bubbleVideos.Length)];
+
+        vpWave.prepareCompleted  += OnPrepared;
+        vpShell.prepareCompleted += OnPrepared;
+        vpBubble.prepareCompleted+= OnPrepared;
+
+        vpWave.Prepare();
+        vpShell.Prepare();
+        vpBubble.Prepare();
+
+        // фініш-трекінг — завершення всіх трьох
+        vpWave.loopPointReached  += OnOneFinished;
+        vpShell.loopPointReached += OnOneFinished;
+        vpBubble.loopPointReached+= OnOneFinished;
+    }
+
+    // Викликається для кожного плеєра, коли він підготовлений
+    void OnPrepared(VideoPlayer vp)
+    {
+        preparedCount++;
+
+        // Коли готові всі три — одночасний старт
+        if (preparedCount >= 3)
         {
+            // Примусово відрендерити перший кадр на всіх
+            PrimeFirstFrame(vpWave);
+            PrimeFirstFrame(vpShell);
+            PrimeFirstFrame(vpBubble);
+
+            // Плавно показати всі три (без мигу) і запустити
+            ShowRenderer(waveRenderer, fadeInDuration);
+            ShowRenderer(shellRenderer, fadeInDuration);
+            ShowRenderer(bubbleRenderer, fadeInDuration);
+
+            vpWave.Play();
+            vpShell.Play();
+            vpBubble.Play();
+        }
+    }
+
+    // допоміжна — примусово намалювати перший кадр у RenderTexture/матеріал
+    void PrimeFirstFrame(VideoPlayer vp)
+    {
+        if (!vp) return;
+        vp.frame = 0;
+        vp.Play();
+        vp.Pause();
+    }
+
+    // Рахуємо завершення кожного плеєра; коли всі 3 — повертаємо у пул
+    void OnOneFinished(VideoPlayer vp)
+    {
+        finishedCount++;
+        if (finishedCount >= 3)
+        {
+            // опційно сховати перед поверненням у пул
+            HideRendererImmediate(waveRenderer);
+            HideRendererImmediate(shellRenderer);
+            HideRendererImmediate(bubbleRenderer);
+
             ShellFlipbookPool.Instance.ReturnToPool(this.gameObject);
         }
+    }
+
+    // --- утиліти для видимості SpriteRenderer ---
+
+    void HideRendererImmediate(SpriteRenderer sr)
+    {
+        if (!sr) return;
+        var c = sr.color;
+        c.a = 0f;
+        sr.color = c;
+        sr.enabled = true; // залишаємо ввімкненим, але прозорим (щоб не мигав при вмиканні)
+    }
+
+    void ShowRenderer(SpriteRenderer sr, float duration)
+    {
+        if (!sr) return;
+        sr.enabled = true;
+        StartCoroutine(FadeSprite(sr, 1f, Mathf.Max(0.0001f, duration)));
+    }
+
+    IEnumerator FadeSprite(SpriteRenderer sr, float targetAlpha, float duration)
+    {
+        float t = 0f;
+        var c = sr.color;
+        float startA = c.a;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float a = Mathf.Lerp(startA, targetAlpha, t / duration);
+            sr.color = new Color(c.r, c.g, c.b, a);
+            yield return null;
+        }
+        sr.color = new Color(c.r, c.g, c.b, targetAlpha);
     }
 }
