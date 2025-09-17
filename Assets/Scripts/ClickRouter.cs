@@ -43,13 +43,13 @@ public class ClickRouter : MonoBehaviour
                 //hit.transform.GetComponent<Shape3D>().OnClick(new Vector3(hit.point.x, hit.point.y + 2, hit.point.z));
                 Vector3 newVector = new Vector3(hit.point.x, hit.point.y, hit.point.z);
                 hit.transform.GetComponent<Shape3D>().OnClick(newVector);
-                Debug.Log("Shell: " + newVector);
+                //Debug.Log("Shell: " + newVector);
             }
             else if (hit.collider.tag == "Background")
             {
                 Vector3 newVector = new Vector3(hit.point.x, hit.point.y + 1, hit.point.z);
                 BubbleFlipbookPool.Instance.StartFlipbook(newVector);
-                Debug.Log("Background: " + newVector);
+                //Debug.Log("Background: " + newVector);
             }
         }
     }
