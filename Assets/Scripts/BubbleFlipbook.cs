@@ -1,43 +1,61 @@
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Video;
+using RenderHeads.Media.AVProVideo;
 
 public class BubbleFlipbook : MonoBehaviour
 {
-    [Header("Players")]
-    public VideoPlayer vpBubble;
-    public VideoPlayer vpWave;
+    [Header("AVPro players")]
+    [SerializeField] private MediaPlayer mpBubble;
+    [SerializeField] private MediaPlayer mpWave;
 
-    [Header("Clips")]
-    public VideoClip[] bubbleVideos;
-    public VideoClip[] waveVideos;
+    [Header("Clips (MediaReferences)")]
+    [SerializeField] private MediaReference[] bubbleVideos;
+    [SerializeField] private MediaReference[] waveVideos;
 
-    [Header("Visual targets (один із варіантів)")]
-    // Якщо рендериш на Quad/Plane — вкажи Renderer (MeshRenderer / SpriteRenderer).
-    public Renderer bubbleRenderer;
-    public Renderer waveRenderer;
+    [Header("Target renderer (матеріал із шейдером на 2-3 шари)")]
+    [SerializeField] private Renderer targetRenderer;
+    [SerializeField] private int materialIndex = 0;
 
-    // Якщо рендериш у UI (RawImage) — вкажи RawImage + CanvasGroup (для fade/ввімкнення).
-    public RawImage bubbleImage;
-    public RawImage waveImage;
-    public CanvasGroup bubbleCanvas;
-    public CanvasGroup waveCanvas;
+    [Header("Shader property names")]
+    [SerializeField] private string propLayer0Opacity = "_Layer0Opacity"; // Bubble
+    [SerializeField] private string propLayer1Opacity = "_Layer1Opacity"; // Wave
 
-    [Header("Плавне увімкнення (мс)")]
-    public float fadeInDuration = 0.15f; // 150 ms; 0 = миттєво
+    [Header("Fade")]
+    [Min(0f)][SerializeField] private float fadeInDuration = 0.15f;
 
-    [Header("Тригер для тесту з інспектора")]
+    [Header("Trigger for test")]
     public bool start = false;
+
+    // runtime
+    private bool readyBubble = false;
+    private bool readyWave   = false;
+    private MediaReference lastBubbleRef;
+    private MediaReference lastWaveRef;
+
+    private MaterialPropertyBlock _mpb;
+
+    void Reset()
+    {
+        mpBubble = GetComponent<MediaPlayer>();
+    }
 
     void Awake()
     {
-        // Базові налаштування плеєрів
-        SetupPlayer(vpBubble);
-        SetupPlayer(vpWave);
+        SetupPlayer(mpBubble);
+        SetupPlayer(mpWave);
 
-        // Стартово ховаємо візуал
-        HideVisual(bubbleRenderer, bubbleImage, bubbleCanvas, true);
-        HideVisual(waveRenderer,   waveImage,   waveCanvas,   true);
+        // стартово — прозоро
+        EnsureMPB();
+        SetOpacities(0f, 0f);
+
+        // підписки
+        if (mpBubble) mpBubble.Events.AddListener(OnMediaEvent);
+        if (mpWave)   mpWave.Events.AddListener(OnMediaEvent);
+    }
+
+    void OnDestroy()
+    {
+        if (mpBubble) mpBubble.Events.RemoveListener(OnMediaEvent);
+        if (mpWave)   mpWave.Events.RemoveListener(OnMediaEvent);
     }
 
     void Update()
@@ -49,143 +67,131 @@ public class BubbleFlipbook : MonoBehaviour
         }
     }
 
-    void SetupPlayer(VideoPlayer vp)
+    private void SetupPlayer(MediaPlayer mp)
     {
-        if (!vp) return;
-        vp.playOnAwake = false;
-        vp.isLooping   = false;
-        vp.waitForFirstFrame = true; // не показує кадри, поки перший не готовий
-        // важливо: не змінюємо targetTexture/матеріали між повторами,
-        // щоб уникати "білих" заповнювачів
+        if (!mp) return;
+        mp.AutoOpen = false;
+        mp.Loop     = false;
+        // решта опцій за замовчуванням
     }
 
     public void PlayOnce()
     {
-        if (!vpBubble || !vpWave || bubbleVideos?.Length == 0 || waveVideos?.Length == 0)
+        if (!mpBubble || !mpWave || bubbleVideos == null || waveVideos == null ||
+            bubbleVideos.Length == 0 || waveVideos.Length == 0 || targetRenderer == null)
         {
-            Debug.LogWarning("BubbleFlipbook: не задані VideoPlayer або масиви кліпів.");
+            Debug.LogWarning("[BubbleFlipbook] Not configured");
             return;
         }
 
-        // Вибір випадкових кліпів (по довжині масивів, без magic numbers)
-        int randomBubble = Random.Range(0, bubbleVideos.Length);
-        int randomWave   = Random.Range(0, waveVideos.Length);
+        // скидаємо стани готовності
+        readyBubble = readyWave = false;
 
-        // Гарантовано сховати візуали, щоб між кліпами не було мигу
-        HideVisual(bubbleRenderer, bubbleImage, bubbleCanvas, true);
-        HideVisual(waveRenderer,   waveImage,   waveCanvas,   true);
+        // ховаємо (через опакіті), щоб не було мигу
+        SetOpacities(0f, 0f);
 
-        // Скидаємо події минулого запуску
-        vpBubble.prepareCompleted -= OnPreparedBubble;
-        vpWave.prepareCompleted   -= OnPreparedWave;
-        vpBubble.loopPointReached -= OnBubbleEnded;
+        // вибираємо випадкові кліпи (без негайного повтору)
+        var bubbleRef = PickRef(bubbleVideos, lastBubbleRef);
+        var waveRef   = PickRef(waveVideos,   lastWaveRef);
 
-        // Призначаємо нові кліпи і готуємо
-        vpBubble.Stop();
-        vpWave.Stop();
+        lastBubbleRef = bubbleRef;
+        lastWaveRef   = waveRef;
 
-        vpBubble.clip = bubbleVideos[randomBubble];
-        vpWave.clip   = waveVideos[randomWave];
-
-        vpBubble.prepareCompleted += OnPreparedBubble;
-        vpWave.prepareCompleted   += OnPreparedWave;
-
-        vpBubble.Prepare();
-        vpWave.Prepare();
-
-        // Відслідковуємо завершення саме "бульбашкового" ролика
-        vpBubble.loopPointReached += OnBubbleEnded;
+        // відкриваємо, але не граємо до FirstFrameReady
+        mpBubble.OpenMedia(bubbleRef, autoPlay: false);
+        mpWave.OpenMedia(waveRef,     autoPlay: false);
     }
 
-    // --- Події підготовки ---
-
-    void OnPreparedBubble(VideoPlayer source)
+    // === AVPro events ===
+    private void OnMediaEvent(MediaPlayer mp, MediaPlayerEvent.EventType evt, ErrorCode error)
     {
-        source.prepareCompleted -= OnPreparedBubble;
-
-        // Гарантовано перемотати на старт і примусово видати перший кадр без мигу
-        source.frame = 0;
-        source.Play();
-        source.Pause(); // тик-пауза змушує відрендерити кадр у RenderTexture/матеріал
-        // тепер можна показувати візуал і стартувати
-        ShowVisual(bubbleRenderer, bubbleImage, bubbleCanvas, fadeInDuration);
-        source.Play();
-    }
-
-    void OnPreparedWave(VideoPlayer source)
-    {
-        source.prepareCompleted -= OnPreparedWave;
-        source.frame = 0;
-        source.Play();
-        source.Pause();
-        ShowVisual(waveRenderer, waveImage, waveCanvas, fadeInDuration);
-        source.Play();
-    }
-
-    // --- Кінець ролика (керуємо життєвим циклом об’єкта з пулу) ---
-
-    void OnBubbleEnded(VideoPlayer vp)
-    {
-        vpBubble.loopPointReached -= OnBubbleEnded;
-
-        // Повертаємо об’єкт у пул
-        BubbleFlipbookPool.Instance.ReturnToPool(this.gameObject);
-
-        // НЕ обнуляємо матеріали/RenderTexture — це і дає "білий спалах".
-        // Лише відв'яжемо кліпи (за бажанням).
-        vpBubble.clip = null;
-        vpWave.clip   = null;
-
-        // На випадок, якщо об’єкт не знищується, — сховати візуали
-        HideVisual(bubbleRenderer, bubbleImage, bubbleCanvas, true);
-        HideVisual(waveRenderer,   waveImage,   waveCanvas,   true);
-    }
-
-    // --- Утиліти для керування видимістю ---
-
-    void HideVisual(Renderer r, RawImage img, CanvasGroup cg, bool instantly)
-    {
-        if (cg)
+        switch (evt)
         {
-            cg.alpha = 0f;
-            cg.interactable = false;
-            cg.blocksRaycasts = false;
+            case MediaPlayerEvent.EventType.FirstFrameReady:
+                if (mp == mpBubble) readyBubble = true;
+                if (mp == mpWave)   readyWave   = true;
+
+                // коли обидва готові — плавно показуємо й стартуємо
+                if (readyBubble && readyWave)
+                    StartPlayback();
+                break;
+
+            case MediaPlayerEvent.EventType.FinishedPlaying:
+                // закінчився bubble — вважаємо цикл завершеним
+                if (mp == mpBubble)
+                {
+                    // сховати й повернути у пул
+                    SetOpacities(0f, 0f);
+                    BubbleFlipbookPool.Instance.ReturnToPool(this.gameObject);
+                }
+                break;
+
+            case MediaPlayerEvent.EventType.Error:
+                Debug.LogWarning($"[BubbleFlipbook] AVPro error: {error} on {mp?.name}");
+                break;
+        }
+    }
+
+    private void StartPlayback()
+    {
+        // гарантуємо нульову видимість перед стартом
+        SetOpacities(0f, 0f);
+
+        // запускаємо обидва плеєри
+        mpWave.Play();
+        mpBubble.Play();
+
+        // піднімаємо опакіті з fade
+        if (fadeInDuration <= 0.0001f)
+        {
+            SetOpacities(1f, 1f);
         }
         else
         {
-            if (img) img.enabled = false;
-            if (r)   r.enabled   = false;
+            StopAllCoroutines();
+            StartCoroutine(FadeInRoutine(fadeInDuration));
         }
     }
 
-    void ShowVisual(Renderer r, RawImage img, CanvasGroup cg, float fade)
+    // === Helpers ===
+
+    private MediaReference PickRef(MediaReference[] pool, MediaReference last)
     {
-        if (cg)
+        if (pool.Length == 1) return pool[0];
+        int tries = 0;
+        MediaReference choice;
+        do
         {
-            // простий Lerp без сторонніх бібліотек
-            StartCoroutine(FadeCanvas(cg, fade <= 0f ? 0.0001f : fade));
-        }
-        else
-        {
-            if (img) img.enabled = true;
-            if (r)   r.enabled   = true;
-        }
+            choice = pool[Random.Range(0, pool.Length)];
+            tries++;
+        } while (choice == last && tries < 8);
+        return choice;
     }
 
-    System.Collections.IEnumerator FadeCanvas(CanvasGroup cg, float duration)
+    private System.Collections.IEnumerator FadeInRoutine(float duration)
     {
-        cg.interactable = true;
-        cg.blocksRaycasts = true;
-
-        if (duration <= 0.001f) { cg.alpha = 1f; yield break; }
-
         float t = 0f;
         while (t < duration)
         {
             t += Time.deltaTime;
-            cg.alpha = Mathf.Clamp01(t / duration);
+            float a = Mathf.Clamp01(t / duration);
+            SetOpacities(a, a);
             yield return null;
         }
-        cg.alpha = 1f;
+        SetOpacities(1f, 1f);
+    }
+
+    private void EnsureMPB()
+    {
+        if (_mpb == null) _mpb = new MaterialPropertyBlock();
+    }
+
+    private void SetOpacities(float bubbleA, float waveA)
+    {
+        EnsureMPB();
+        targetRenderer.GetPropertyBlock(_mpb, materialIndex);
+        if (!string.IsNullOrEmpty(propLayer0Opacity)) _mpb.SetFloat(propLayer0Opacity, bubbleA);
+        if (!string.IsNullOrEmpty(propLayer1Opacity)) _mpb.SetFloat(propLayer1Opacity, waveA);
+        targetRenderer.SetPropertyBlock(_mpb, materialIndex);
     }
 }

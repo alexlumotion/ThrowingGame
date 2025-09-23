@@ -1,44 +1,67 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.Video;
+using RenderHeads.Media.AVProVideo;
+using System.Collections;
 
 public class ShellFlipbook : MonoBehaviour
 {
     [Header("Players")]
-    public VideoPlayer vpWave;
-    public VideoPlayer vpShell;
-    public VideoPlayer vpBubble;
+    public MediaPlayer mpWave;
+    public MediaPlayer mpShell;
+    public MediaPlayer mpBubble;
 
     [Header("Clips")]
-    public VideoClip[] waveVideos;
-    public VideoClip[] shellVideos;
-    public VideoClip[] bubbleVideos;
+    public MediaReference[] waveVideos;
+    public MediaReference[] shellVideos;
+    public MediaReference[] bubbleVideos;
 
-    [Header("Sprite Renderers (кожен плеєр рендерить у свій матеріал/RT)")]
-    public SpriteRenderer waveRenderer;
-    public SpriteRenderer shellRenderer;
-    public SpriteRenderer bubbleRenderer;
+    [Header("Target Renderer + Material (TripleVideo shader)")]
+    public Renderer targetRenderer;   // один Renderer із матеріалом TripleVideoURP
+    public int materialIndex = 0;     // якщо у рендерера кілька матеріалів
 
-    [Header("Плавний фейд увімкнення (сек)")]
+    [Header("Fade")]
     public float fadeInDuration = 0.15f;
 
-    [Header("Тригер для тесту з інспектора")]
+    [Header("Trigger")]
     public bool start = false;
 
     // внутрішній стан
-    int preparedCount = 0;
-    int finishedCount = 0;
+    private int readyCount = 0;
+    private int finishedCount = 0;
+
+    // кеш імена пропертей (щоб не писати строки кожен раз)
+    private static readonly int Layer0OpacityID = Shader.PropertyToID("_Layer0Opacity");
+    private static readonly int Layer1OpacityID = Shader.PropertyToID("_Layer1Opacity");
+    private static readonly int Layer2OpacityID = Shader.PropertyToID("_Layer2Opacity");
+
+    private Material _matInstance;
 
     void Awake()
     {
-        SetupPlayer(vpWave);
-        SetupPlayer(vpShell);
-        SetupPlayer(vpBubble);
+        // Матеріал: створимо інстанс, щоб не правити sharedMaterial
+        if (targetRenderer)
+        {
+            var mats = targetRenderer.materials;
+            if (materialIndex < 0 || materialIndex >= mats.Length)
+            {
+                Debug.LogError("ShellFlipbookAVPro: materialIndex поза діапазоном.");
+            }
+            else
+            {
+                // інстансуємо матеріал
+                mats[materialIndex] = new Material(mats[materialIndex]);
+                targetRenderer.materials = mats;
+                _matInstance = mats[materialIndex];
 
-        // стартово сховати всі візуали
-        HideRendererImmediate(waveRenderer);
-        HideRendererImmediate(shellRenderer);
-        HideRendererImmediate(bubbleRenderer);
+                // стартово сховаємо всі шари
+                _matInstance.SetFloat(Layer0OpacityID, 0f);
+                _matInstance.SetFloat(Layer1OpacityID, 0f);
+                _matInstance.SetFloat(Layer2OpacityID, 0f);
+            }
+        }
+
+        SetupPlayer(mpWave);
+        SetupPlayer(mpShell);
+        SetupPlayer(mpBubble);
     }
 
     void Update()
@@ -50,143 +73,134 @@ public class ShellFlipbook : MonoBehaviour
         }
     }
 
-    void SetupPlayer(VideoPlayer vp)
+    void SetupPlayer(MediaPlayer mp)
     {
-        if (!vp) return;
-        vp.playOnAwake = false;
-        vp.isLooping = false;
-        vp.waitForFirstFrame = true; // не показувати, поки перший кадр не готовий
+        if (!mp) return;
+        mp.AutoOpen = false;
+        mp.Loop = false;
+        mp.Events.AddListener(OnMediaEvent);
     }
 
     public void PlayOnce()
     {
-        if (!vpWave || !vpShell || !vpBubble ||
+        if (!mpWave || !mpShell || !mpBubble ||
             waveVideos == null || shellVideos == null || bubbleVideos == null ||
             waveVideos.Length == 0 || shellVideos.Length == 0 || bubbleVideos.Length == 0)
         {
-            Debug.LogWarning("ShellFlipbook: не налаштовані VideoPlayer або масиви кліпів.");
+            Debug.LogWarning("ShellFlipbookAVPro: не налаштовані MediaPlayer або масиви кліпів.");
             return;
         }
 
-        // скинути попередні підписки/стан
-        vpWave.prepareCompleted  -= OnPrepared;
-        vpShell.prepareCompleted -= OnPrepared;
-        vpBubble.prepareCompleted-= OnPrepared;
-
-        vpWave.loopPointReached  -= OnOneFinished;
-        vpShell.loopPointReached -= OnOneFinished;
-        vpBubble.loopPointReached-= OnOneFinished;
-
-        preparedCount = 0;
+        readyCount = 0;
         finishedCount = 0;
 
-        // сховати візуал, щоб не було мигу між кліпами
-        HideRendererImmediate(waveRenderer);
-        HideRendererImmediate(shellRenderer);
-        HideRendererImmediate(bubbleRenderer);
+        // обираємо випадкові кліпи
+        var waveRef   = waveVideos[Random.Range(0, waveVideos.Length)];
+        var shellRef  = shellVideos[Random.Range(0, shellVideos.Length)];
+        var bubbleRef = bubbleVideos[Random.Range(0, bubbleVideos.Length)];
 
-        // зупинити, призначити випадкові кліпи, підписатись і підготувати
-        vpWave.Stop();
-        vpShell.Stop();
-        vpBubble.Stop();
+        // відкриваємо БЕЗ автоплея — чекаємо FirstFrameReady усіх трьох
+        mpWave.OpenMedia(waveRef,  autoPlay: false);
+        mpShell.OpenMedia(shellRef, autoPlay: false);
+        mpBubble.OpenMedia(bubbleRef,autoPlay: false);
 
-        vpWave.clip  = waveVideos[Random.Range(0, waveVideos.Length)];
-        vpShell.clip = shellVideos[Random.Range(0, shellVideos.Length)];
-        vpBubble.clip= bubbleVideos[Random.Range(0, bubbleVideos.Length)];
-
-        vpWave.prepareCompleted  += OnPrepared;
-        vpShell.prepareCompleted += OnPrepared;
-        vpBubble.prepareCompleted+= OnPrepared;
-
-        vpWave.Prepare();
-        vpShell.Prepare();
-        vpBubble.Prepare();
-
-        // фініш-трекінг — завершення всіх трьох
-        vpWave.loopPointReached  += OnOneFinished;
-        vpShell.loopPointReached += OnOneFinished;
-        vpBubble.loopPointReached+= OnOneFinished;
-    }
-
-    // Викликається для кожного плеєра, коли він підготовлений
-    void OnPrepared(VideoPlayer vp)
-    {
-        preparedCount++;
-
-        // Коли готові всі три — одночасний старт
-        if (preparedCount >= 3)
+        // шари — прозорі, щоб не було блимання
+        if (_matInstance)
         {
-            // Примусово відрендерити перший кадр на всіх
-            PrimeFirstFrame(vpWave);
-            PrimeFirstFrame(vpShell);
-            PrimeFirstFrame(vpBubble);
-
-            // Плавно показати всі три (без мигу) і запустити
-            ShowRenderer(waveRenderer, fadeInDuration);
-            ShowRenderer(shellRenderer, fadeInDuration);
-            ShowRenderer(bubbleRenderer, fadeInDuration);
-
-            vpWave.Play();
-            vpShell.Play();
-            vpBubble.Play();
+            _matInstance.SetFloat(Layer0OpacityID, 0f);
+            _matInstance.SetFloat(Layer1OpacityID, 0f);
+            _matInstance.SetFloat(Layer2OpacityID, 0f);
         }
     }
 
-    // допоміжна — примусово намалювати перший кадр у RenderTexture/матеріал
-    void PrimeFirstFrame(VideoPlayer vp)
+    // AVPro події
+    private void OnMediaEvent(MediaPlayer mp, MediaPlayerEvent.EventType evt, ErrorCode error)
     {
-        if (!vp) return;
-        vp.frame = 0;
-        vp.Play();
-        vp.Pause();
+        switch (evt)
+        {
+            case MediaPlayerEvent.EventType.FirstFrameReady:
+                OnPrepared(mp);
+                break;
+
+            case MediaPlayerEvent.EventType.FinishedPlaying:
+                OnOneFinished(mp);
+                break;
+
+            case MediaPlayerEvent.EventType.Error:
+                Debug.LogWarning($"ShellFlipbookAVPro: AVPro error {error} on {mp?.name}");
+                // вважатимемо завершеним, щоб не зависнути
+                OnOneFinished(mp);
+                break;
+        }
     }
 
-    // Рахуємо завершення кожного плеєра; коли всі 3 — повертаємо у пул
-    void OnOneFinished(VideoPlayer vp)
+    // коли кожен із трьох підготував перший кадр
+    void OnPrepared(MediaPlayer mp)
+    {
+        readyCount++;
+        if (readyCount >= 3)
+        {
+            // одночасний старт
+            mpWave.Play();
+            mpShell.Play();
+            mpBubble.Play();
+
+            // плавно підняти опакіті шарів
+            if (gameObject.activeInHierarchy)
+                StartCoroutine(FadeLayersIn());
+        }
+    }
+
+    IEnumerator FadeLayersIn()
+    {
+        float t = 0f;
+        float dur = Mathf.Max(0.0001f, fadeInDuration);
+
+        // стартові значення
+        float a0 = _matInstance ? _matInstance.GetFloat(Layer0OpacityID) : 0f;
+        float a1 = _matInstance ? _matInstance.GetFloat(Layer1OpacityID) : 0f;
+        float a2 = _matInstance ? _matInstance.GetFloat(Layer2OpacityID) : 0f;
+
+        while (t < dur)
+        {
+            t += Time.deltaTime;
+            float k = Mathf.Clamp01(t / dur);
+
+            if (_matInstance)
+            {
+                _matInstance.SetFloat(Layer0OpacityID, Mathf.Lerp(a0, 1f, k));
+                _matInstance.SetFloat(Layer1OpacityID, Mathf.Lerp(a1, 1f, k));
+                _matInstance.SetFloat(Layer2OpacityID, Mathf.Lerp(a2, 1f, k));
+            }
+            yield return null;
+        }
+
+        if (_matInstance)
+        {
+            _matInstance.SetFloat(Layer0OpacityID, 1f);
+            _matInstance.SetFloat(Layer1OpacityID, 1f);
+            _matInstance.SetFloat(Layer2OpacityID, 1f);
+        }
+    }
+
+    // Рахуємо, коли усі три дограли
+    void OnOneFinished(MediaPlayer mp)
     {
         finishedCount++;
         if (finishedCount >= 3)
         {
-            // опційно сховати перед поверненням у пул
-            HideRendererImmediate(waveRenderer);
-            HideRendererImmediate(shellRenderer);
-            HideRendererImmediate(bubbleRenderer);
+            // скинемо опакіті, щоб не мигало при наступному старті
+            if (_matInstance)
+            {
+                _matInstance.SetFloat(Layer0OpacityID, 0f);
+                _matInstance.SetFloat(Layer1OpacityID, 0f);
+                _matInstance.SetFloat(Layer2OpacityID, 0f);
+            }
 
-            ShellFlipbookPool.Instance.ReturnToPool(this.gameObject);
+            // повертаємо у пул (як у тебе було)
+            var pool = ShellFlipbookPool.Instance;
+            if (pool != null) pool.ReturnToPool(this.gameObject);
+            else gameObject.SetActive(false);
         }
-    }
-
-    // --- утиліти для видимості SpriteRenderer ---
-
-    void HideRendererImmediate(SpriteRenderer sr)
-    {
-        if (!sr) return;
-        var c = sr.color;
-        c.a = 0f;
-        sr.color = c;
-        sr.enabled = true; // залишаємо ввімкненим, але прозорим (щоб не мигав при вмиканні)
-    }
-
-    void ShowRenderer(SpriteRenderer sr, float duration)
-    {
-        if (!sr) return;
-        sr.enabled = true;
-        StartCoroutine(FadeSprite(sr, 1f, Mathf.Max(0.0001f, duration)));
-    }
-
-    IEnumerator FadeSprite(SpriteRenderer sr, float targetAlpha, float duration)
-    {
-        float t = 0f;
-        var c = sr.color;
-        float startA = c.a;
-
-        while (t < duration)
-        {
-            t += Time.deltaTime;
-            float a = Mathf.Lerp(startA, targetAlpha, t / duration);
-            sr.color = new Color(c.r, c.g, c.b, a);
-            yield return null;
-        }
-        sr.color = new Color(c.r, c.g, c.b, targetAlpha);
     }
 }
