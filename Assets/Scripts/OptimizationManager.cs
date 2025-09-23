@@ -10,6 +10,7 @@ public class OptimizationManager : MonoBehaviour
     [Header("Налаштування оптимізації")]
     [Tooltip("Цільовий FPS (кадрів в секунду)")]
     public int targetFPS = 30;
+    public int vSync = 1;
 
     [Tooltip("Інтервал очищення невикористаних ресурсів (у секундах)")]
     public float unloadInterval = 1800f; // 30 хвилин
@@ -19,9 +20,9 @@ public class OptimizationManager : MonoBehaviour
         Debug.Log("⚙️ OptimizationManager: запуск оптимізації");
 
         Application.targetFrameRate = targetFPS;
-        QualitySettings.vSyncCount = 0;
+        QualitySettings.vSyncCount = vSync;
 
-        Debug.Log($"📉 FPS обмежено до {targetFPS}, VSync вимкнено");
+        Debug.Log($"📉 FPS обмежено до {targetFPS}, VSync: {vSync}");
     }
 
     void Start()
