@@ -1,22 +1,21 @@
 using UnityEngine;
-using UnityEngine.Video;
+using RenderHeads.Media.AVProVideo;
 
 public class FishVideoController : MonoBehaviour
 {
     public enum Direction { LeftToRight, RightToLeft }
 
-    [Header("References")]
-    [SerializeField] private VideoPlayer videoPlayer;
+    [Header("AVPro")]
+    [SerializeField] private MediaPlayer mediaPlayer;
 
-    [Header("Clips")]
-    [Tooltip("Кліпи, де риби пливуть зліва -> направо")]
-    [SerializeField] private VideoClip[] leftToRightClips;
+    [Header("Output (вимикаємо на час підготовки кадру)")]
 
-    [Tooltip("Кліпи, де риби пливуть справа -> наліво")]
-    [SerializeField] private VideoClip[] rightToLeftClips;
+    [SerializeField] private Renderer videoRenderer; 
 
-    [Tooltip("Кліпи третьої категорії (інтерлюдія)")]
-    [SerializeField] private VideoClip[] interludeClips;
+    [Header("Clips (MediaReferences)")]
+    [SerializeField] private MediaReference[] leftToRight;
+    [SerializeField] private MediaReference[] rightToLeft;
+    [SerializeField] private MediaReference[] interludes;
 
     [Header("Playback")]
     [SerializeField] private bool autoPlayOnStart = true;
@@ -24,101 +23,112 @@ public class FishVideoController : MonoBehaviour
     [SerializeField] private bool avoidImmediateRepeat = true;
 
     [Header("Interlude (кожні N секунд)")]
-    [Tooltip("Інтервал між інтерлюдіями в секундах (за замовчуванням 5 хв = 300с)")]
     [Min(1f)] public float interludeIntervalSeconds = 300f;
 
     private Direction currentDirection;
-    private VideoClip lastPlayedClip;
+    private MediaReference lastPlayedRef;
 
-    // Інтерлюдія/таймер
     private float nextInterludeAt = Mathf.Infinity;
-    private bool interludePending = false;     // позначка: треба вставити інтерлюдію після поточного кліпу
-    private bool isInterludePlaying = false;   // зараз грає інтерлюдія
+    private bool interludePending = false;
+    private bool isInterludePlaying = false;
+
+    // Що саме зараз відкриваємо (чекаємо FirstFrameReady)
+    private MediaReference pendingRef = null;
 
     void Reset()
     {
-        videoPlayer = GetComponent<VideoPlayer>();
+        mediaPlayer = GetComponent<MediaPlayer>();
     }
 
     void Awake()
     {
-        if (!videoPlayer) videoPlayer = GetComponent<VideoPlayer>();
-        if (!videoPlayer) videoPlayer = gameObject.AddComponent<VideoPlayer>();
+        if (!mediaPlayer) mediaPlayer = GetComponent<MediaPlayer>();
+        if (!mediaPlayer) mediaPlayer = gameObject.AddComponent<MediaPlayer>();
 
-        videoPlayer.isLooping = false;
-        videoPlayer.playOnAwake = false;
-        videoPlayer.source = VideoSource.VideoClip;
+        mediaPlayer.AutoOpen = false;
+        mediaPlayer.Loop = false;
 
-        videoPlayer.loopPointReached += OnVideoEnded;
-        videoPlayer.errorReceived += (vp, msg) =>
-        {
-            Debug.LogWarning($"[FishVideoController] Video error: {msg}");
-            // якщо сталася помилка — спробуємо перейти далі за поточним станом
-            HandleNextOnEnd();
-        };
+        mediaPlayer.Events.AddListener(OnMediaEvent);
     }
 
     void Start()
     {
         currentDirection = startDirection;
-        ScheduleNextInterlude(); // стартуємо таймер
+        ScheduleNextInterlude();
 
         if (autoPlayOnStart)
-            PlayNext(currentDirection);
+        {
+            // одразу відкриваємо перший, чекаємо FirstFrameReady
+            StartOpenNext(PickRef(GetPool(currentDirection)));
+        }
     }
 
     void OnDestroy()
     {
-        if (videoPlayer != null)
-            videoPlayer.loopPointReached -= OnVideoEnded;
+        if (mediaPlayer != null)
+            mediaPlayer.Events.RemoveListener(OnMediaEvent);
     }
 
-    private void OnVideoEnded(VideoPlayer vp)
+    // ===== AVPro events =====
+    private void OnMediaEvent(MediaPlayer mp, MediaPlayerEvent.EventType evt, ErrorCode error)
     {
-        HandleNextOnEnd();
+        switch (evt)
+        {
+            case MediaPlayerEvent.EventType.FinishedPlaying:
+                HandleNextOnEnd();
+                break;
+
+            case MediaPlayerEvent.EventType.FirstFrameReady:
+                if (pendingRef != null)
+                {
+                    if (videoRenderer) videoRenderer.enabled = true;
+                    mediaPlayer.Play();
+                    lastPlayedRef = pendingRef;
+                    pendingRef = null;
+                }
+                break;
+
+            case MediaPlayerEvent.EventType.Error:
+                Debug.LogWarning($"[FishVideoController] AVPro error: {error}");
+                HandleNextOnEnd();
+                break;
+        }
     }
 
+    // ===== Переходи =====
     private void HandleNextOnEnd()
     {
-        // Якщо щойно завершилась інтерлюдія — повертаємось до нормального циклу
         if (isInterludePlaying)
         {
             isInterludePlaying = false;
-            ScheduleNextInterlude(); // переносимо таймер
-            PlayNext(currentDirection); // продовжуємо з тим самим напрямком, що був до інтерлюдії
+            ScheduleNextInterlude();
+            StartOpenNext(PickRef(GetPool(currentDirection)));
             return;
         }
 
-        // Якщо настав час інтерлюдії або вона вже запланована — граємо інтерлюдію
         if (interludePending || Time.time >= nextInterludeAt)
         {
             interludePending = false;
-            PlayInterlude();
+            isInterludePlaying = true;
+            StartOpenNext(PickRef(interludes));
             return;
         }
 
-        // 🔹 Нове: міняємо напрямок після кожного звичайного кліпу
+        // міняємо напрямок щоразу після звичайного кліпу
         currentDirection = currentDirection == Direction.LeftToRight
             ? Direction.RightToLeft
             : Direction.LeftToRight;
 
-        PlayNext(currentDirection);
+        StartOpenNext(PickRef(GetPool(currentDirection)));
     }
 
-    /// <summary>
-    /// Зовнішній виклик: встановити напрямок і одразу програти наступний кліп.
-    /// </summary>
     public void PlayDirection(Direction dir)
     {
         currentDirection = dir;
-        // не зриваємо логіку інтерлюдії — просто граємо наступний згідно стану
         if (!isInterludePlaying)
-            PlayNext(currentDirection);
+            StartOpenNext(PickRef(GetPool(currentDirection)));
     }
 
-    /// <summary>
-    /// Зовнішній виклик: перемкнути напрямок (тумблер) і програти наступний кліп (якщо не грає інтерлюдія).
-    /// </summary>
     public void ToggleDirection()
     {
         currentDirection = currentDirection == Direction.LeftToRight
@@ -126,27 +136,16 @@ public class FishVideoController : MonoBehaviour
             : Direction.LeftToRight;
 
         if (!isInterludePlaying)
-            PlayNext(currentDirection);
+            StartOpenNext(PickRef(GetPool(currentDirection)));
     }
 
-    /// <summary>
-    /// Можеш змінювати інтервал під час роботи.
-    /// </summary>
     public void SetInterludeIntervalSeconds(float seconds)
     {
         interludeIntervalSeconds = Mathf.Max(1f, seconds);
-        // перескеджулити наступну інтерлюдію від поточного моменту,
-        // але без переривання поточного кліпу
         ScheduleNextInterlude();
     }
 
-    /// <summary>
-    /// Вручну “попросити” інтерлюдію: спрацює після завершення поточного кліпу.
-    /// </summary>
-    public void RequestInterlude()
-    {
-        interludePending = true;
-    }
+    public void RequestInterlude() => interludePending = true;
 
     private void ScheduleNextInterlude()
     {
@@ -154,78 +153,44 @@ public class FishVideoController : MonoBehaviour
         interludePending = false;
     }
 
-    private void PlayInterlude()
+    // ===== Відкриття з очікуванням FirstFrameReady =====
+    private void StartOpenNext(MediaReference next)
     {
-        var pool = interludeClips;
-        if (pool == null || pool.Length == 0)
-        {
-            Debug.LogWarning("[FishVideoController] No interlude clips assigned. Continue normal playback.");
-            ScheduleNextInterlude();
-            PlayNext(currentDirection);
-            return;
-        }
-
-        var next = PickClip(pool);
         if (next == null)
         {
-            Debug.LogWarning("[FishVideoController] Failed to pick interlude clip. Continue normal playback.");
-            ScheduleNextInterlude();
-            PlayNext(currentDirection);
+            Debug.LogWarning("[FishVideoController] Next clip is null");
             return;
         }
 
-        isInterludePlaying = true;
-        lastPlayedClip = next;
-        videoPlayer.Stop();
-        videoPlayer.clip = next;
-        videoPlayer.Play();
+        // Ховаємо дисплей/квад/RawImage на час підготовки кадру
+        if (videoRenderer) videoRenderer.enabled = false; 
+
+        pendingRef = next;
+
+        // НЕ Stop(); відкриваємо з autoPlay:false і чекаємо FirstFrameReady
+        mediaPlayer.OpenMedia(next, autoPlay: false);
     }
 
-    private void PlayNext(Direction dir)
+    // ===== Допоміжні =====
+    private MediaReference[] GetPool(Direction dir)
     {
-        var pool = GetPool(dir);
-        if (pool == null || pool.Length == 0)
-        {
-            Debug.LogWarning($"[FishVideoController] No clips for direction {dir}");
-            return;
-        }
-
-        var next = PickClip(pool);
-        if (next == null)
-        {
-            Debug.LogWarning("[FishVideoController] Failed to pick next clip.");
-            return;
-        }
-
-        lastPlayedClip = next;
-
-        videoPlayer.Stop();
-        videoPlayer.clip = next;
-        videoPlayer.Play();
+        return dir == Direction.LeftToRight ? leftToRight : rightToLeft;
     }
 
-    private VideoClip[] GetPool(Direction dir)
+    private MediaReference PickRef(MediaReference[] pool)
     {
-        return dir == Direction.LeftToRight ? leftToRightClips : rightToLeftClips;
-    }
-
-    private VideoClip PickClip(VideoClip[] pool)
-    {
+        if (pool == null || pool.Length == 0) return null;
         if (pool.Length == 1) return pool[0];
 
         int tries = 0;
-        VideoClip choice;
+        MediaReference choice;
         do
         {
             choice = pool[Random.Range(0, pool.Length)];
             tries++;
-            if (!avoidImmediateRepeat || lastPlayedClip == null) break;
-        } while (choice == lastPlayedClip && tries < 8);
+            if (!avoidImmediateRepeat || lastPlayedRef == null) break;
+        } while (choice == lastPlayedRef && tries < 8);
 
         return choice;
     }
-
-    // (опційно) якщо хочеш форсувати інтерлюдію по таймеру без очікування кінця кліпу:
-    // можеш у Update перевіряти час і ставити interludePending = true
-    // але ти просив чекати завершення поточного відео — тож тут не потрібно.
 }

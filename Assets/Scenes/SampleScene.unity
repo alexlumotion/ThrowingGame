@@ -895,27 +895,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e677b4e9fd05444458f9019e769fb150, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  videoPlayer: {fileID: 1484051007}
-  leftToRightClips:
-  - {fileID: 32900000, guid: e0eec6ccc8f794036900f2c62a2cd092, type: 3}
-  - {fileID: 32900000, guid: 8b9e87b78fec648fd8f729fec2743f69, type: 3}
-  - {fileID: 32900000, guid: 66d8b61ecacf243e7a15e5c23d7bb16d, type: 3}
-  - {fileID: 32900000, guid: d533c5f17e4a74ac4941b07fc6f3c16e, type: 3}
-  - {fileID: 32900000, guid: 5a035c329d6a34305a62977b82d2f683, type: 3}
-  - {fileID: 32900000, guid: eca64798e68c64c14b18d20d06f824be, type: 3}
-  rightToLeftClips:
-  - {fileID: 32900000, guid: c9bdc0787d5434375bd69701d7edfef1, type: 3}
-  - {fileID: 32900000, guid: b456af344e834493db60f8f94eb0493d, type: 3}
-  - {fileID: 32900000, guid: f6da659389787444687b21ff7d0b81c4, type: 3}
-  - {fileID: 32900000, guid: 538ca91d2dd1a47c2ab09f13ed0bf560, type: 3}
-  - {fileID: 32900000, guid: 2486f1b07fdd44cd9aba4260451c0718, type: 3}
-  - {fileID: 32900000, guid: 608f4d62e778347c1a4d419145c8cd54, type: 3}
-  interludeClips:
-  - {fileID: 32900000, guid: 0d0d2012885df474d84d5d5b178a5e3c, type: 3}
+  mediaPlayer: {fileID: 1484051010}
+  videoRenderer: {fileID: 575203499}
+  leftToRight:
+  - {fileID: 11400000, guid: 2f84b5d778f304333aa6adcf46719a36, type: 2}
+  - {fileID: 11400000, guid: 1cbc1cf77f30f4530bff62ab07b591d8, type: 2}
+  - {fileID: 11400000, guid: df699bfef23aa4db4bd9a6ce0ffddcd7, type: 2}
+  - {fileID: 11400000, guid: 33417475a3b544ec48acca089d43cea0, type: 2}
+  - {fileID: 11400000, guid: 74ace7d0324c0400daad113d6341875c, type: 2}
+  - {fileID: 11400000, guid: 574bd5af6650f4d33a157e83ea4b0aa1, type: 2}
+  rightToLeft:
+  - {fileID: 11400000, guid: 4326a7d82e18745358199f0bbe1284d2, type: 2}
+  - {fileID: 11400000, guid: 09c6ad631c8314ca48091836cd473c07, type: 2}
+  - {fileID: 11400000, guid: e0d375acf557242f8bc52ccea1f2eaab, type: 2}
+  - {fileID: 11400000, guid: b49b71493f2a94c8b9000817085bb550, type: 2}
+  - {fileID: 11400000, guid: 66b83314eb7024d28a512d5436b6da32, type: 2}
+  - {fileID: 11400000, guid: 774ade50ef5e44bd6bb6e60250dc923a, type: 2}
+  interludes:
+  - {fileID: 11400000, guid: f7f75ab4b5ceb41b686feb2c93440965, type: 2}
   autoPlayOnStart: 1
   startDirection: 0
   avoidImmediateRepeat: 1
-  interludeIntervalSeconds: 20
+  interludeIntervalSeconds: 300
 --- !u!1 &752350323
 GameObject:
   m_ObjectHideFlags: 0
@@ -1379,7 +1380,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1361649196}
-  - component: {fileID: 1361649195}
   - component: {fileID: 1361649197}
   m_Layer: 0
   m_Name: ShapePool
@@ -1388,22 +1388,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1361649195
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1361649194}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a808ab732d63f4a3c98649705008e0d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shapePrefabs:
-  - {fileID: 1636222910311508347, guid: 26752058f90634bd9844fc05666e0692, type: 3}
-  - {fileID: 1895173058994925203, guid: 1db69f3b439fe4bfd87136160b07f574, type: 3}
-  poolSizePerType: 5
 --- !u!4 &1361649196
 Transform:
   m_ObjectHideFlags: 0
@@ -1539,7 +1523,7 @@ MonoBehaviour:
   _mediaReference: {fileID: 0}
   _mediaPath:
     _pathType: 2
-    _path: Video/classic/fishes_center_output_hap_alpha.mov
+    _path: Fishes/fishes_center_output.mov
   _fallbackMediaHints:
     transparency: 0
     alphaPacking: 0
@@ -2091,7 +2075,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1914083618}
-  - component: {fileID: 1914083619}
   - component: {fileID: 1914083620}
   m_Layer: 0
   m_Name: ShapeSpawner
@@ -2115,24 +2098,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 762901946}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1914083619
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1914083617}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ea1a87b26fa2495c9df761f554f9150, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pool: {fileID: 1361649195}
-  spawnInterval: 0.5
-  spawnXRange: 8
-  spawnY: 8
-  useFlightMode: 0
-  flightSpeed: 5
 --- !u!114 &1914083620
 MonoBehaviour:
   m_ObjectHideFlags: 0
