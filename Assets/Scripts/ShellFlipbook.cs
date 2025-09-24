@@ -4,64 +4,67 @@ using System.Collections;
 
 public class ShellFlipbook : MonoBehaviour
 {
-    [Header("Players")]
-    public MediaPlayer mpWave;
-    public MediaPlayer mpShell;
-    public MediaPlayer mpBubble;
+    [Header("AVPro players")]
+    [SerializeField] private MediaPlayer mpWave;
+    [SerializeField] private MediaPlayer mpShell;
+    [SerializeField] private MediaPlayer mpBubble;
 
-    [Header("Clips")]
-    public MediaReference[] waveVideos;
-    public MediaReference[] shellVideos;
-    public MediaReference[] bubbleVideos;
+    [Header("Clips (MediaReferences)")]
+    [SerializeField] private MediaReference[] waveVideos;
+    [SerializeField] private MediaReference[] shellVideos;
+    [SerializeField] private MediaReference[] bubbleVideos;
 
-    [Header("Target Renderer + Material (TripleVideo shader)")]
-    public Renderer targetRenderer;   // один Renderer із матеріалом TripleVideoURP
-    public int materialIndex = 0;     // якщо у рендерера кілька матеріалів
+    [Header("Target renderer (матеріал із шейдером на 3 шари)")]
+    [SerializeField] private Renderer targetRenderer;
+    [SerializeField] private int materialIndex = 0;
+
+    [Header("Shader property names (opacity per layer)")]
+    [SerializeField] private string propLayer0Opacity = "_Layer0Opacity"; // Wave (нижній шар)
+    [SerializeField] private string propLayer1Opacity = "_Layer1Opacity"; // Shell (середній)
+    [SerializeField] private string propLayer2Opacity = "_Layer2Opacity"; // Bubble (верхній)
 
     [Header("Fade")]
-    public float fadeInDuration = 0.15f;
+    [Min(0f)][SerializeField] private float fadeInDuration = 0.15f;
 
-    [Header("Trigger")]
+    [Header("Trigger for test")]
     public bool start = false;
 
-    // внутрішній стан
-    private int readyCount = 0;
+    // Runtime state
+    private bool readyWave   = false;
+    private bool readyShell  = false;
+    private bool readyBubble = false;
+
     private int finishedCount = 0;
 
-    // кеш імена пропертей (щоб не писати строки кожен раз)
-    private static readonly int Layer0OpacityID = Shader.PropertyToID("_Layer0Opacity");
-    private static readonly int Layer1OpacityID = Shader.PropertyToID("_Layer1Opacity");
-    private static readonly int Layer2OpacityID = Shader.PropertyToID("_Layer2Opacity");
+    private MediaReference lastWaveRef;
+    private MediaReference lastShellRef;
+    private MediaReference lastBubbleRef;
 
-    private Material _matInstance;
+    private MaterialPropertyBlock _mpb;
 
     void Awake()
     {
-        // Матеріал: створимо інстанс, щоб не правити sharedMaterial
-        if (targetRenderer)
-        {
-            var mats = targetRenderer.materials;
-            if (materialIndex < 0 || materialIndex >= mats.Length)
-            {
-                Debug.LogError("ShellFlipbookAVPro: materialIndex поза діапазоном.");
-            }
-            else
-            {
-                // інстансуємо матеріал
-                mats[materialIndex] = new Material(mats[materialIndex]);
-                targetRenderer.materials = mats;
-                _matInstance = mats[materialIndex];
-
-                // стартово сховаємо всі шари
-                _matInstance.SetFloat(Layer0OpacityID, 0f);
-                _matInstance.SetFloat(Layer1OpacityID, 0f);
-                _matInstance.SetFloat(Layer2OpacityID, 0f);
-            }
-        }
-
         SetupPlayer(mpWave);
         SetupPlayer(mpShell);
         SetupPlayer(mpBubble);
+
+        // стартово — прозоро
+        EnsureMPB();
+        SetOpacities(0f, 0f, 0f);
+    }
+
+    void OnEnable()
+    {
+        if (mpWave)   mpWave.Events.AddListener(OnMediaEvent);
+        if (mpShell)  mpShell.Events.AddListener(OnMediaEvent);
+        if (mpBubble) mpBubble.Events.AddListener(OnMediaEvent);
+    }
+
+    void OnDisable()
+    {
+        if (mpWave)   mpWave.Events.RemoveListener(OnMediaEvent);
+        if (mpShell)  mpShell.Events.RemoveListener(OnMediaEvent);
+        if (mpBubble) mpBubble.Events.RemoveListener(OnMediaEvent);
     }
 
     void Update()
@@ -73,134 +76,143 @@ public class ShellFlipbook : MonoBehaviour
         }
     }
 
-    void SetupPlayer(MediaPlayer mp)
+    private void SetupPlayer(MediaPlayer mp)
     {
         if (!mp) return;
         mp.AutoOpen = false;
-        mp.Loop = false;
-        mp.Events.AddListener(OnMediaEvent);
+        mp.Loop     = false;
+        // інші опції — за потреби
     }
 
     public void PlayOnce()
     {
         if (!mpWave || !mpShell || !mpBubble ||
             waveVideos == null || shellVideos == null || bubbleVideos == null ||
-            waveVideos.Length == 0 || shellVideos.Length == 0 || bubbleVideos.Length == 0)
+            waveVideos.Length == 0 || shellVideos.Length == 0 || bubbleVideos.Length == 0 ||
+            targetRenderer == null)
         {
-            Debug.LogWarning("ShellFlipbookAVPro: не налаштовані MediaPlayer або масиви кліпів.");
+            Debug.LogWarning("[ShellFlipbook] Not configured");
             return;
         }
 
-        readyCount = 0;
+        // скидаємо стани
+        readyWave = readyShell = readyBubble = false;
         finishedCount = 0;
 
-        // обираємо випадкові кліпи
-        var waveRef   = waveVideos[Random.Range(0, waveVideos.Length)];
-        var shellRef  = shellVideos[Random.Range(0, shellVideos.Length)];
-        var bubbleRef = bubbleVideos[Random.Range(0, bubbleVideos.Length)];
+        // ховаємо (через опакіті), щоб не було мигу
+        SetOpacities(0f, 0f, 0f);
 
-        // відкриваємо БЕЗ автоплея — чекаємо FirstFrameReady усіх трьох
-        mpWave.OpenMedia(waveRef,  autoPlay: false);
+        // вибір випадкових кліпів (із захистом від миттєвого повтору)
+        var waveRef   = PickRef(waveVideos,   lastWaveRef);
+        var shellRef  = PickRef(shellVideos,  lastShellRef);
+        var bubbleRef = PickRef(bubbleVideos, lastBubbleRef);
+
+        lastWaveRef   = waveRef;
+        lastShellRef  = shellRef;
+        lastBubbleRef = bubbleRef;
+
+        // відкриваємо, але чекаємо FirstFrameReady усіх трьох
+        mpWave.OpenMedia(waveRef,   autoPlay: false);
         mpShell.OpenMedia(shellRef, autoPlay: false);
         mpBubble.OpenMedia(bubbleRef,autoPlay: false);
-
-        // шари — прозорі, щоб не було блимання
-        if (_matInstance)
-        {
-            _matInstance.SetFloat(Layer0OpacityID, 0f);
-            _matInstance.SetFloat(Layer1OpacityID, 0f);
-            _matInstance.SetFloat(Layer2OpacityID, 0f);
-        }
     }
 
-    // AVPro події
+    // === AVPro events ===
     private void OnMediaEvent(MediaPlayer mp, MediaPlayerEvent.EventType evt, ErrorCode error)
     {
         switch (evt)
         {
             case MediaPlayerEvent.EventType.FirstFrameReady:
-                OnPrepared(mp);
+                if (mp == mpWave)   readyWave   = true;
+                if (mp == mpShell)  readyShell  = true;
+                if (mp == mpBubble) readyBubble = true;
+
+                if (readyWave && readyShell && readyBubble)
+                    StartPlayback();
                 break;
 
             case MediaPlayerEvent.EventType.FinishedPlaying:
-                OnOneFinished(mp);
+                // рахуємо завершення — коли всі 3 дограли, повертаємось у пул
+                finishedCount++;
+                if (finishedCount >= 3)
+                {
+                    SetOpacities(0f, 0f, 0f);
+                    var pool = ShellFlipbookPool.Instance;
+                    if (pool != null) pool.ReturnToPool(this.gameObject);
+                    else gameObject.SetActive(false);
+                }
                 break;
 
             case MediaPlayerEvent.EventType.Error:
-                Debug.LogWarning($"ShellFlipbookAVPro: AVPro error {error} on {mp?.name}");
-                // вважатимемо завершеним, щоб не зависнути
-                OnOneFinished(mp);
+                Debug.LogWarning($"[ShellFlipbook] AVPro error: {error} on {mp?.name}");
                 break;
         }
     }
 
-    // коли кожен із трьох підготував перший кадр
-    void OnPrepared(MediaPlayer mp)
+    private void StartPlayback()
     {
-        readyCount++;
-        if (readyCount >= 3)
-        {
-            // одночасний старт
-            mpWave.Play();
-            mpShell.Play();
-            mpBubble.Play();
+        // гарантуємо нульову видимість перед стартом
+        SetOpacities(0f, 0f, 0f);
 
-            // плавно підняти опакіті шарів
-            if (gameObject.activeInHierarchy)
-                StartCoroutine(FadeLayersIn());
+        // одночасний старт трьох плеєрів
+        mpWave.Play();
+        mpShell.Play();
+        mpBubble.Play();
+
+        // підняти опакіті з fade
+        if (fadeInDuration <= 0.0001f)
+        {
+            SetOpacities(1f, 1f, 1f);
+        }
+        else
+        {
+            StopAllCoroutines();
+            StartCoroutine(FadeInRoutine(fadeInDuration));
         }
     }
 
-    IEnumerator FadeLayersIn()
+    // === Helpers ===
+
+    private MediaReference PickRef(MediaReference[] pool, MediaReference last)
+    {
+        if (pool.Length == 1) return pool[0];
+        int tries = 0;
+        MediaReference choice;
+        do
+        {
+            choice = pool[Random.Range(0, pool.Length)];
+            tries++;
+        } while (choice == last && tries < 8);
+        return choice;
+    }
+
+    private IEnumerator FadeInRoutine(float duration)
     {
         float t = 0f;
-        float dur = Mathf.Max(0.0001f, fadeInDuration);
-
-        // стартові значення
-        float a0 = _matInstance ? _matInstance.GetFloat(Layer0OpacityID) : 0f;
-        float a1 = _matInstance ? _matInstance.GetFloat(Layer1OpacityID) : 0f;
-        float a2 = _matInstance ? _matInstance.GetFloat(Layer2OpacityID) : 0f;
-
-        while (t < dur)
+        while (t < duration)
         {
             t += Time.deltaTime;
-            float k = Mathf.Clamp01(t / dur);
-
-            if (_matInstance)
-            {
-                _matInstance.SetFloat(Layer0OpacityID, Mathf.Lerp(a0, 1f, k));
-                _matInstance.SetFloat(Layer1OpacityID, Mathf.Lerp(a1, 1f, k));
-                _matInstance.SetFloat(Layer2OpacityID, Mathf.Lerp(a2, 1f, k));
-            }
+            float a = Mathf.Clamp01(t / duration);
+            SetOpacities(a, a, a);
             yield return null;
         }
-
-        if (_matInstance)
-        {
-            _matInstance.SetFloat(Layer0OpacityID, 1f);
-            _matInstance.SetFloat(Layer1OpacityID, 1f);
-            _matInstance.SetFloat(Layer2OpacityID, 1f);
-        }
+        SetOpacities(1f, 1f, 1f);
     }
 
-    // Рахуємо, коли усі три дограли
-    void OnOneFinished(MediaPlayer mp)
+    private void EnsureMPB()
     {
-        finishedCount++;
-        if (finishedCount >= 3)
-        {
-            // скинемо опакіті, щоб не мигало при наступному старті
-            if (_matInstance)
-            {
-                _matInstance.SetFloat(Layer0OpacityID, 0f);
-                _matInstance.SetFloat(Layer1OpacityID, 0f);
-                _matInstance.SetFloat(Layer2OpacityID, 0f);
-            }
+        if (_mpb == null) _mpb = new MaterialPropertyBlock();
+    }
 
-            // повертаємо у пул (як у тебе було)
-            var pool = ShellFlipbookPool.Instance;
-            if (pool != null) pool.ReturnToPool(this.gameObject);
-            else gameObject.SetActive(false);
-        }
+    private void SetOpacities(float waveA, float shellA, float bubbleA)
+    {
+        EnsureMPB();
+        targetRenderer.GetPropertyBlock(_mpb, materialIndex);
+
+        if (!string.IsNullOrEmpty(propLayer0Opacity)) _mpb.SetFloat(propLayer0Opacity, waveA);
+        if (!string.IsNullOrEmpty(propLayer1Opacity)) _mpb.SetFloat(propLayer1Opacity, shellA);
+        if (!string.IsNullOrEmpty(propLayer2Opacity)) _mpb.SetFloat(propLayer2Opacity, bubbleA);
+
+        targetRenderer.SetPropertyBlock(_mpb, materialIndex);
     }
 }
