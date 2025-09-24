@@ -555,7 +555,7 @@ MonoBehaviour:
   _mediaReference: {fileID: 0}
   _mediaPath:
     _pathType: 2
-    _path: Video/classic/throwing_zone_bg_output_hap.mov
+    _path: Backgrounds/current_Throwing_Zone_BG_Output_v2_h264_highq.mp4
   _fallbackMediaHints:
     transparency: 0
     alphaPacking: 0
@@ -1830,7 +1830,7 @@ MonoBehaviour:
   _mediaReference: {fileID: 0}
   _mediaPath:
     _pathType: 2
-    _path: Video/classic/bubbles_fg_03_loop_hap_alpha.mov
+    _path: Backgrounds/current_bubbles_fg_03_loop_hap_alpha.mov
   _fallbackMediaHints:
     transparency: 0
     alphaPacking: 0
