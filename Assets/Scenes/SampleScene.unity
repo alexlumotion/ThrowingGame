@@ -2266,8 +2266,8 @@ MonoBehaviour:
     use10BitTextures: 0
     hintAlphaChannel: 0
     useLowLatency: 0
-    useCustomMovParser: 0
-    useHapNotchLC: 0
+    useCustomMovParser: 1
+    useHapNotchLC: 1
     useStereoDetection: 1
     useTextTrackSupport: 1
     useFacebookAudio360Support: 1
@@ -2573,8 +2573,8 @@ MonoBehaviour:
     use10BitTextures: 0
     hintAlphaChannel: 0
     useLowLatency: 0
-    useCustomMovParser: 0
-    useHapNotchLC: 0
+    useCustomMovParser: 1
+    useHapNotchLC: 1
     useStereoDetection: 1
     useTextTrackSupport: 1
     useFacebookAudio360Support: 1
