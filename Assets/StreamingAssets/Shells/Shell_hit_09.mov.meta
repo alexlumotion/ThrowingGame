@@ -1,27 +1,7 @@
 fileFormatVersion: 2
-guid: 248cdc4aad5bb4d1fa0b1f744c13c995
-VideoClipImporter:
+guid: e671457ebb5bb48bcb0c20851953f506
+DefaultImporter:
   externalObjects: {}
-  serializedVersion: 2
-  frameRange: 0
-  startFrame: -1
-  endFrame: -1
-  colorSpace: 0
-  deinterlace: 0
-  encodeAlpha: 1
-  flipVertical: 0
-  flipHorizontal: 0
-  importAudio: 1
-  targetSettings:
-    0:
-      enableTranscoding: 1
-      codec: 0
-      resizeFormat: 0
-      aspectRatio: 0
-      customWidth: 1080
-      customHeight: 1080
-      bitrateMode: 2
-      spatialQuality: 2
   userData: 
   assetBundleName: 
   assetBundleVariant: 
