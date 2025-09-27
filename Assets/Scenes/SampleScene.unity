@@ -851,6 +851,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetFPS: 60
+  vSync: 1
   unloadInterval: 1800
 --- !u!1 &963194225
 GameObject:
@@ -1054,7 +1055,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1361649196}
-  - component: {fileID: 1361649195}
   - component: {fileID: 1361649197}
   m_Layer: 0
   m_Name: ShapePool
@@ -1063,22 +1063,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1361649195
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1361649194}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a808ab732d63f4a3c98649705008e0d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shapePrefabs:
-  - {fileID: 1636222910311508347, guid: 26752058f90634bd9844fc05666e0692, type: 3}
-  - {fileID: 1895173058994925203, guid: 1db69f3b439fe4bfd87136160b07f574, type: 3}
-  poolSizePerType: 5
 --- !u!4 &1361649196
 Transform:
   m_ObjectHideFlags: 0
@@ -1283,7 +1267,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1914083618}
-  - component: {fileID: 1914083619}
   - component: {fileID: 1914083620}
   m_Layer: 0
   m_Name: ShapeSpawner
@@ -1307,24 +1290,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 762901946}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1914083619
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1914083617}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ea1a87b26fa2495c9df761f554f9150, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pool: {fileID: 1361649195}
-  spawnInterval: 0.5
-  spawnXRange: 8
-  spawnY: 8
-  useFlightMode: 0
-  flightSpeed: 5
 --- !u!114 &1914083620
 MonoBehaviour:
   m_ObjectHideFlags: 0
