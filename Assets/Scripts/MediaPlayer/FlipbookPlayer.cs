@@ -19,6 +19,7 @@ public class FlipbookPlayer : MonoBehaviour
     public int fps = 30;
     [Tooltip("Кадрів у одному чанку (має збігатися з білдом)")] public int framesPerChunk = 120;
     public bool loop = true;
+    //public bool autoPlayOnEnable = true;
 
     [Header("Preload")]
     [Tooltip("Почати прелоад наступного чанка, коли до кінця лишилось стільки кадрів")]
@@ -124,6 +125,8 @@ public class FlipbookPlayer : MonoBehaviour
         _startedRaised = false;
         _lastEmittedGlobal = -1;
         _lastChunkIndex = -1;
+
+        //if (autoPlayOnEnable == false) { return; }
 
         // Стартове завантаження першого чанка (0)
         int curChunk = 0;

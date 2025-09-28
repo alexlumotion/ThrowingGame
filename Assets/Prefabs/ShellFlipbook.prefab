@@ -101,6 +101,7 @@ MonoBehaviour:
   fps: 30
   framesPerChunk: 60
   loop: 0
+  autoPlayOnEnable: 0
   preloadThresholdFrames: 0
   textureArrayProperty: _FlipbookTex
   frameIndexProperty: _Frame
@@ -311,6 +312,7 @@ MonoBehaviour:
   fps: 30
   framesPerChunk: 60
   loop: 0
+  autoPlayOnEnable: 0
   preloadThresholdFrames: 0
   textureArrayProperty: _FlipbookTex
   frameIndexProperty: _Frame
@@ -460,6 +462,7 @@ MonoBehaviour:
   fps: 30
   framesPerChunk: 60
   loop: 0
+  autoPlayOnEnable: 0
   preloadThresholdFrames: 0
   textureArrayProperty: _FlipbookTex
   frameIndexProperty: _Frame

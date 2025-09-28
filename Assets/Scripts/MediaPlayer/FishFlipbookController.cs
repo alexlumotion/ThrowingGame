@@ -134,7 +134,7 @@ public class FishFlipbookController : MonoBehaviour
             _isInterludePlaying = false;
             OnInterludeEnded?.Invoke();
             StartInterludeTimerIfNeeded();       // запланувати наступну інтерлюдію
-            PlayDirection(_currentDirection);    // продовжити звичайний флоу
+            PlayDirection(Opposite(_currentDirection));    // продовжити звичайний флоу
             Debug.Log($"[FishFlipbookController] Interlude ended → back to direction={_currentDirection}");
             return;
         }
