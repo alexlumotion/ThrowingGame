@@ -222,7 +222,7 @@ MonoBehaviour:
   setId: 0
   fps: 30
   framesPerChunk: 60
-  loop: 1
+  loop: 0
   preloadThresholdFrames: 30
   textureArrayProperty: _FlipbookTex
   frameIndexProperty: _Frame
@@ -392,7 +392,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &430196006
 Transform:
   m_ObjectHideFlags: 0
@@ -768,9 +768,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 707724351}
-  - component: {fileID: 707724352}
+  - component: {fileID: 707724353}
   m_Layer: 0
-  m_Name: FishVideoController
+  m_Name: FishFlipbookController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -791,7 +791,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 762901946}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &707724352
+--- !u!114 &707724353
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -800,30 +800,33 @@ MonoBehaviour:
   m_GameObject: {fileID: 707724350}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e677b4e9fd05444458f9019e769fb150, type: 3}
+  m_Script: {fileID: 11500000, guid: 3fcd1f6acf83743558284de42597bf47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  videoPlayer: {fileID: 1484051007}
-  leftToRightClips:
-  - {fileID: 32900000, guid: e0eec6ccc8f794036900f2c62a2cd092, type: 3}
-  - {fileID: 32900000, guid: 8b9e87b78fec648fd8f729fec2743f69, type: 3}
-  - {fileID: 32900000, guid: 66d8b61ecacf243e7a15e5c23d7bb16d, type: 3}
-  - {fileID: 32900000, guid: d533c5f17e4a74ac4941b07fc6f3c16e, type: 3}
-  - {fileID: 32900000, guid: 5a035c329d6a34305a62977b82d2f683, type: 3}
-  - {fileID: 32900000, guid: eca64798e68c64c14b18d20d06f824be, type: 3}
-  rightToLeftClips:
-  - {fileID: 32900000, guid: c9bdc0787d5434375bd69701d7edfef1, type: 3}
-  - {fileID: 32900000, guid: b456af344e834493db60f8f94eb0493d, type: 3}
-  - {fileID: 32900000, guid: f6da659389787444687b21ff7d0b81c4, type: 3}
-  - {fileID: 32900000, guid: 538ca91d2dd1a47c2ab09f13ed0bf560, type: 3}
-  - {fileID: 32900000, guid: 2486f1b07fdd44cd9aba4260451c0718, type: 3}
-  - {fileID: 32900000, guid: 608f4d62e778347c1a4d419145c8cd54, type: 3}
-  interludeClips:
-  - {fileID: 32900000, guid: 0d0d2012885df474d84d5d5b178a5e3c, type: 3}
+  player: {fileID: 238766250}
+  leftToRightSets: 200000002100000022000000230000002400000025000000
+  rightToLeftSets: 260000002700000028000000290000002a0000002b000000
+  interludeSetId: 0
   autoPlayOnStart: 1
   startDirection: 0
+  interludeIntervalSeconds: 30
   avoidImmediateRepeat: 1
-  interludeIntervalSeconds: 20
+  alternateDirections: 1
+  OnClipStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnClipFinished:
+    m_PersistentCalls:
+      m_Calls: []
+  OnInterludeStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnInterludeEnded:
+    m_PersistentCalls:
+      m_Calls: []
+  OnError:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &752350323
 GameObject:
   m_ObjectHideFlags: 0
@@ -1132,6 +1135,78 @@ MonoBehaviour:
     fps: 30
     framesPerChunk: 0
     startAtZero: 1
+  - name: fish 1
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_01_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 2
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_02_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 12
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 3
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_03_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 4
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_04_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 5
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_05_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 6
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_06_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 7
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_07_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 8
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_08_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 9
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_09_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 10
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_10_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 12
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 11
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_11_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: fish 12
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_12_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
   debug:
     autoLogIntervalSec: 0
     detailed: 0
@@ -1167,7 +1242,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &909213374
 Transform:
   m_ObjectHideFlags: 0
@@ -1634,7 +1709,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1606089605
 Transform:
   m_ObjectHideFlags: 0

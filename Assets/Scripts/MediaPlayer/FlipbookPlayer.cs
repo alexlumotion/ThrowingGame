@@ -128,9 +128,11 @@ public class FlipbookPlayer : MonoBehaviour
         // Стартове завантаження першого чанка (0)
         int curChunk = 0;
         _addrCurrent = manager?.GetAddress(setId, curChunk);
+        Debug.Log($"[FlipbookPlayer] Start load first chunk: {_addrCurrent}");
         if (!string.IsNullOrEmpty(_addrCurrent))
         {
             _texCurrent = await manager.LoadChunkAsync(_addrCurrent);
+            Debug.Log($"[FlipbookPlayer] First chunk loaded: {_addrCurrent}, tex={_texCurrent}");
             if (_texCurrent != null)
             {
                 ApplyTexture(_texCurrent);
@@ -218,31 +220,48 @@ public class FlipbookPlayer : MonoBehaviour
         // totalFrames (за припущенням паддингу) = totalChunks * framesPerChunk
         int totalFrames = totalChunks * framesPerChunk;
 
+        // --- [1] Якщо не лупимо і вже пройшли всі кадри — фініш одразу
+        if (!loop && _currentFrame >= totalFrames)
+        {
+            _playing = false;
+            _currentFrame = totalFrames - 1; // тримаємося в межах
+            Raise(OnFinished, Finished);
+            return;
+        }
+
         int curChunk = (_currentFrame / framesPerChunk) % totalChunks;
         int intra = _currentFrame % framesPerChunk;
+        int lastChunkIndex = totalChunks - 1;
 
-        // Прелоад наступного чанка
+        // Прелоад наступного чанка (але НЕ на останньому чанку, якщо loop=false)
         if (framesPerChunk - intra <= preloadThresholdFrames)
         {
-            int nextChunk = (curChunk + 1) % totalChunks;
-            string wantedAddr = manager.GetAddress(setId, nextChunk);
-
-            if (_addrNext != wantedAddr)
+            bool onLastChunkNoLoop = (!loop && curChunk == lastChunkIndex);
+            if (!onLastChunkNoLoop)
             {
-                // звільнити попередній next, якщо був
-                if (!string.IsNullOrEmpty(_addrNext)) manager.ReleaseChunk(_addrNext);
+                int nextChunk = (curChunk + 1) % totalChunks;
+                string wantedAddr = manager.GetAddress(setId, nextChunk);
 
-                _addrNext = wantedAddr;
-                Raise(OnNextChunkPreloadStarted, NextChunkPreloadStarted, nextChunk);
+                if (_addrNext != wantedAddr)
+                {
+                    Debug.Log($"[FlipbookPlayer] Preload next chunk: {wantedAddr}");
+                    // звільнити попередній next, якщо був
+                    if (!string.IsNullOrEmpty(_addrNext)) manager.ReleaseChunk(_addrNext);
 
-                _texNext = await manager.LoadChunkAsync(_addrNext);
-                if (_texNext != null)
-                {
-                    Raise(OnNextChunkPreloadReady, NextChunkPreloadReady, nextChunk);
-                }
-                else
-                {
-                    Raise(OnNextChunkPreloadFailed, NextChunkPreloadFailed, nextChunk, $"Failed to load '{_addrNext}'");
+                    _addrNext = wantedAddr;
+                    Raise(OnNextChunkPreloadStarted, NextChunkPreloadStarted, nextChunk);
+
+                    _texNext = await manager.LoadChunkAsync(_addrNext);
+                    Debug.Log($"[FlipbookPlayer] Next chunk loaded: {_addrNext}, tex={_texNext}");
+
+                    if (_texNext != null)
+                    {
+                        Raise(OnNextChunkPreloadReady, NextChunkPreloadReady, nextChunk);
+                    }
+                    else
+                    {
+                        Raise(OnNextChunkPreloadFailed, NextChunkPreloadFailed, nextChunk, $"Failed to load '{_addrNext}'");
+                    }
                 }
             }
         }
@@ -250,15 +269,26 @@ public class FlipbookPlayer : MonoBehaviour
         // Перемикання чанка, коли межа
         if (intra == 0)
         {
+            Debug.Log($"[FlipbookPlayer] Frame boundary reached: curChunk={curChunk} intra={intra}");
+
             // Перевірка лупа: якщо повернулися на кадр 0 (multiple of totalFrames)
             if (loop && totalFrames > 0 && (_currentFrame % totalFrames) == 0)
             {
                 Raise(OnLoop, LoopTriggered);
             }
 
+            // Якщо це останній чанк і loop=false — завершуємо, ІГНОРУЮЧИ будь-який _texNext
+            if (!loop && curChunk == lastChunkIndex)
+            {
+                _playing = false;
+                Raise(OnFinished, Finished);
+                return;
+            }
+
             // Якщо наступний завантажений — підміняємо
             if (_texNext != null && !string.IsNullOrEmpty(_addrNext))
             {
+                Debug.Log($"[FlipbookPlayer] Switching to next chunk: {_addrNext}");
                 // Звільнити поточний
                 if (!string.IsNullOrEmpty(_addrCurrent)) manager.ReleaseChunk(_addrCurrent);
 
@@ -277,13 +307,7 @@ public class FlipbookPlayer : MonoBehaviour
             }
             else
             {
-                // Якщо next нема і loop вимкнено та це був останній чанк → стоп
-                int lastChunkIndex = (totalChunks - 1);
-                if (!loop && curChunk == lastChunkIndex)
-                {
-                    _playing = false;
-                    Raise(OnFinished, Finished);
-                }
+                // (страховка) якщо межа, а next нема — нічого не робимо; підвантажиться пізніше
             }
         }
 
