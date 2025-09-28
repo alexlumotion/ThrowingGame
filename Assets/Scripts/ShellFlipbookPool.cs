@@ -50,7 +50,8 @@ public class ShellFlipbookPool : MonoBehaviour
     {
         GameObject target = GetFromPool();
         target.transform.position = new Vector3(targetPosition.x, targetPosition.y, targetPosition.z - 1);
-        target.GetComponent<ShellFlipbook>().PlayOnce();
+        //target.GetComponent<ShellFlipbook>().PlayOnce();
+        target.GetComponent<ShellFlipbookDirector>().StartNow();
     }
 
 }

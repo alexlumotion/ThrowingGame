@@ -952,6 +952,190 @@ MonoBehaviour:
     fps: 30
     framesPerChunk: 0
     startAtZero: 1
+  - name: Bubbles hit 1
+    addressTemplate: Assets/FlipbookChunks/Bubbles/buble_hit_1_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: Bubbles hit 2
+    addressTemplate: Assets/FlipbookChunks/Bubbles/buble_hit_2_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: Bubbles hit 3
+    addressTemplate: Assets/FlipbookChunks/Bubbles/buble_hit_3_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: Bubbles hit 4
+    addressTemplate: Assets/FlipbookChunks/Bubbles/buble_hit_4_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: Bubbles hit 5
+    addressTemplate: Assets/FlipbookChunks/Bubbles/buble_hit_5_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: Bubbles hit 6
+    addressTemplate: Assets/FlipbookChunks/Bubbles/buble_hit_6_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 1
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_1_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 2
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_2_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 3
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_3_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 4
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_4_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 5
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_5_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 6
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_6_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 7
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_7_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 8
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_8_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 9
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_9_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 10
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_10_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 11
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_11_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: shell 12
+    addressTemplate: Assets/FlipbookChunks/Shell/shell_hit_12_chunk00_1024x1024_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 1
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_c_1_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 2
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_c_2_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 3
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_c_3_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 4
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_c_4_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 5
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_c_5_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 6
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_c_6_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 7
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_l_1_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 8
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_l_2_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 9
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_l_3_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 10
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_l_4_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 11
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_l_5_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  - name: wave 12
+    addressTemplate: Assets/FlipbookChunks/Wave/wave_l_6_chunk00_512x512_DXT5.asset
+    totalChunks: 1
+    fps: 30
+    framesPerChunk: 0
+    startAtZero: 1
+  debug:
+    autoLogIntervalSec: 0
+    detailed: 0
+    trackOwners: 0
 --- !u!4 &878099995
 Transform:
   m_ObjectHideFlags: 0
