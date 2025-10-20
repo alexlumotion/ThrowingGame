@@ -57,7 +57,7 @@ public class Shape3D : MonoBehaviour
     void Update()
     {
         // прості межі сцени (z залишаємо біля 0, але можна додати обмеження за потреби)
-        if (transform.position.y < -6f ||
+        if (transform.position.y < -9f ||
             Mathf.Abs(transform.position.x) > 20f ||
             transform.position.y > 20f)
         {
