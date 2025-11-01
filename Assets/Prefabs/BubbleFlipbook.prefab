@@ -46,34 +46,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 808379fca5b10482fbb0bc2ca51b5465, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vpBubble: {fileID: 4109810900115114935}
-  vpWave: {fileID: 52415498665108665}
-  bubbleVideos:
-  - {fileID: 32900000, guid: 5242b6f23e83040eda34894eaed5272f, type: 3}
-  - {fileID: 32900000, guid: e0eacfd107e0541cd8fd6960467fd747, type: 3}
-  - {fileID: 32900000, guid: 94eaa7d324928435786a1354eaced757, type: 3}
-  - {fileID: 32900000, guid: ab6aabcd20a7b45818adc5a9e905ecd7, type: 3}
-  - {fileID: 32900000, guid: 6146aa1638cc84d55af695fd06c62160, type: 3}
-  - {fileID: 32900000, guid: a75be9aa9b60a4583ab9d2c57756efb0, type: 3}
-  waveVideos:
-  - {fileID: 32900000, guid: 6f17ab787d395480eb9b79d3e0c71709, type: 3}
-  - {fileID: 32900000, guid: 8656a2883ee8247c68fbc13044d141d9, type: 3}
-  - {fileID: 32900000, guid: 4ab61ee409e87404982cdfbc52091ef5, type: 3}
-  - {fileID: 32900000, guid: 899e506f72793475e96a83665fe87f99, type: 3}
-  - {fileID: 32900000, guid: 4a77f24add75e4b468ecf41e89519014, type: 3}
-  - {fileID: 32900000, guid: b8e066e55d57443bdbd86ba2819063f9, type: 3}
-  - {fileID: 32900000, guid: 3dbc68c111b4b48fea0f21dc51948bbc, type: 3}
-  - {fileID: 32900000, guid: 16eabc21c2ac24611b3787c76799b133, type: 3}
-  - {fileID: 32900000, guid: e4fc9d1f5fd5d43e09825cf96afa9169, type: 3}
-  - {fileID: 32900000, guid: a632df4f8fe2f4d238a18e4a856bb9ee, type: 3}
-  - {fileID: 32900000, guid: ae787c0fddb6841c8996de550141ad73, type: 3}
-  - {fileID: 32900000, guid: 3aeb503d5fca44409bf04f25aa87a550, type: 3}
+  bubbleAnimator: {fileID: 5622113023823675150}
+  waveAnimator: {fileID: 6666053552083176807}
+  bubbleStatePrefix: bubble_
+  waveStatePrefix: wave_
+  bubbleStateRange: {x: 1, y: 6}
+  waveStateRange: {x: 1, y: 12}
   bubbleRenderer: {fileID: 6207569654571401317}
   waveRenderer: {fileID: 8002962524671531949}
-  bubbleImage: {fileID: 0}
-  waveImage: {fileID: 0}
-  bubbleCanvas: {fileID: 0}
-  waveCanvas: {fileID: 0}
   fadeInDuration: 0.15
   start: 0
 --- !u!1 &2609406949571124435
@@ -86,7 +66,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5676943983885579893}
   - component: {fileID: 6207569654571401317}
-  - component: {fileID: 4109810900115114935}
+  - component: {fileID: 5622113023823675150}
   m_Layer: 0
   m_Name: Bubble
   m_TagString: Untagged
@@ -161,42 +141,27 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!328 &4109810900115114935
-VideoPlayer:
+--- !u!95 &5622113023823675150
+Animator:
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2609406949571124435}
   m_Enabled: 1
-  m_VideoClip: {fileID: 0}
-  m_TargetCameraAlpha: 1
-  m_TargetCamera3DLayout: 0
-  m_TargetCamera: {fileID: 0}
-  m_TargetTexture: {fileID: 0}
-  m_TimeReference: 0
-  m_TargetMaterialRenderer: {fileID: 0}
-  m_TargetMaterialProperty: <noninit>
-  m_RenderMode: 3
-  m_AspectRatio: 2
-  m_DataSource: 0
-  m_TimeUpdateMode: 2
-  m_PlaybackSpeed: 1
-  m_AudioOutputMode: 2
-  m_TargetAudioSources:
-  - {fileID: 0}
-  m_DirectAudioVolumes:
-  - 1
-  m_Url: 
-  m_EnabledAudioTracks: 01
-  m_DirectAudioMutes: 00
-  m_ControlledAudioTrackCount: 1
-  m_PlayOnAwake: 0
-  m_SkipOnDrop: 1
-  m_Looping: 0
-  m_WaitForFirstFrame: 1
-  m_FrameReadyEventEnabled: 0
-  m_VideoShaders: []
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 4006fc1f298664af5bfc2b0a538ff878, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &3850881126536033223
 GameObject:
   m_ObjectHideFlags: 0
@@ -207,7 +172,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8193754485596816235}
   - component: {fileID: 8002962524671531949}
-  - component: {fileID: 52415498665108665}
+  - component: {fileID: 6666053552083176807}
   m_Layer: 0
   m_Name: Wave
   m_TagString: Untagged
@@ -282,37 +247,24 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!328 &52415498665108665
-VideoPlayer:
+--- !u!95 &6666053552083176807
+Animator:
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3850881126536033223}
   m_Enabled: 1
-  m_VideoClip: {fileID: 0}
-  m_TargetCameraAlpha: 1
-  m_TargetCamera3DLayout: 0
-  m_TargetCamera: {fileID: 0}
-  m_TargetTexture: {fileID: 0}
-  m_TimeReference: 0
-  m_TargetMaterialRenderer: {fileID: 0}
-  m_TargetMaterialProperty: <noninit>
-  m_RenderMode: 3
-  m_AspectRatio: 2
-  m_DataSource: 0
-  m_TimeUpdateMode: 2
-  m_PlaybackSpeed: 1
-  m_AudioOutputMode: 2
-  m_TargetAudioSources: []
-  m_DirectAudioVolumes: []
-  m_Url: 
-  m_EnabledAudioTracks: 
-  m_DirectAudioMutes: 
-  m_ControlledAudioTrackCount: 0
-  m_PlayOnAwake: 0
-  m_SkipOnDrop: 1
-  m_Looping: 0
-  m_WaitForFirstFrame: 1
-  m_FrameReadyEventEnabled: 0
-  m_VideoShaders: []
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 69739dccff8204e20a915605ec16ac70, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

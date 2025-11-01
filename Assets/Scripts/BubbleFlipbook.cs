@@ -1,43 +1,40 @@
+using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Video;
 
 public class BubbleFlipbook : MonoBehaviour
 {
-    [Header("Players")]
-    public VideoPlayer vpBubble;
-    public VideoPlayer vpWave;
+    [Header("Animators")]
+    public Animator bubbleAnimator;
+    public Animator waveAnimator;
 
-    [Header("Clips")]
-    public VideoClip[] bubbleVideos;
-    public VideoClip[] waveVideos;
+    [Header("State Name Prefixes")]
+    public string bubbleStatePrefix = "bubble_";
+    public string waveStatePrefix = "wave_";
 
-    [Header("Visual targets (один із варіантів)")]
-    // Якщо рендериш на Quad/Plane — вкажи Renderer (MeshRenderer / SpriteRenderer).
-    public Renderer bubbleRenderer;
-    public Renderer waveRenderer;
+    [Header("Inclusive State Ranges")]
+    public Vector2Int bubbleStateRange = new Vector2Int(1, 6);
+    public Vector2Int waveStateRange = new Vector2Int(1, 12);
 
-    // Якщо рендериш у UI (RawImage) — вкажи RawImage + CanvasGroup (для fade/ввімкнення).
-    public RawImage bubbleImage;
-    public RawImage waveImage;
-    public CanvasGroup bubbleCanvas;
-    public CanvasGroup waveCanvas;
+    [Header("Sprite Renderers")]
+    public SpriteRenderer bubbleRenderer;
+    public SpriteRenderer waveRenderer;
 
-    [Header("Плавне увімкнення (мс)")]
-    public float fadeInDuration = 0.15f; // 150 ms; 0 = миттєво
+    [Header("Плавний фейд увімкнення (сек)")]
+    public float fadeInDuration = 0.15f;
 
     [Header("Тригер для тесту з інспектора")]
     public bool start = false;
 
+    int finishedCount = 0;
+    int playSessionId = 0;
+
+    Coroutine bubbleCoroutine;
+    Coroutine waveCoroutine;
+
     void Awake()
     {
-        // Базові налаштування плеєрів
-        SetupPlayer(vpBubble);
-        SetupPlayer(vpWave);
-
-        // Стартово ховаємо візуал
-        HideVisual(bubbleRenderer, bubbleImage, bubbleCanvas, true);
-        HideVisual(waveRenderer,   waveImage,   waveCanvas,   true);
+        HideRendererImmediate(bubbleRenderer);
+        HideRendererImmediate(waveRenderer);
     }
 
     void Update()
@@ -49,143 +46,166 @@ public class BubbleFlipbook : MonoBehaviour
         }
     }
 
-    void SetupPlayer(VideoPlayer vp)
-    {
-        if (!vp) return;
-        vp.playOnAwake = false;
-        vp.isLooping   = false;
-        vp.waitForFirstFrame = true; // не показує кадри, поки перший не готовий
-        // важливо: не змінюємо targetTexture/матеріали між повторами,
-        // щоб уникати "білих" заповнювачів
-    }
-
     public void PlayOnce()
     {
-        if (!vpBubble || !vpWave || bubbleVideos?.Length == 0 || waveVideos?.Length == 0)
+        if (!bubbleAnimator || !waveAnimator)
         {
-            Debug.LogWarning("BubbleFlipbook: не задані VideoPlayer або масиви кліпів.");
+            Debug.LogWarning("BubbleFlipbook: не налаштовані Animator.");
             return;
         }
 
-        // Вибір випадкових кліпів (по довжині масивів, без magic numbers)
-        int randomBubble = Random.Range(0, bubbleVideos.Length);
-        int randomWave   = Random.Range(0, waveVideos.Length);
+        playSessionId++;
+        int currentSession = playSessionId;
 
-        // Гарантовано сховати візуали, щоб між кліпами не було мигу
-        HideVisual(bubbleRenderer, bubbleImage, bubbleCanvas, true);
-        HideVisual(waveRenderer,   waveImage,   waveCanvas,   true);
+        StopActiveCoroutines();
+        finishedCount = 0;
 
-        // Скидаємо події минулого запуску
-        vpBubble.prepareCompleted -= OnPreparedBubble;
-        vpWave.prepareCompleted   -= OnPreparedWave;
-        vpBubble.loopPointReached -= OnBubbleEnded;
+        HideRendererImmediate(bubbleRenderer);
+        HideRendererImmediate(waveRenderer);
 
-        // Призначаємо нові кліпи і готуємо
-        vpBubble.Stop();
-        vpWave.Stop();
+        string bubbleState = GetRandomStateName(bubbleStatePrefix, bubbleStateRange);
+        string waveState = GetRandomStateName(waveStatePrefix, waveStateRange);
 
-        vpBubble.clip = bubbleVideos[randomBubble];
-        vpWave.clip   = waveVideos[randomWave];
-
-        vpBubble.prepareCompleted += OnPreparedBubble;
-        vpWave.prepareCompleted   += OnPreparedWave;
-
-        vpBubble.Prepare();
-        vpWave.Prepare();
-
-        // Відслідковуємо завершення саме "бульбашкового" ролика
-        vpBubble.loopPointReached += OnBubbleEnded;
-    }
-
-    // --- Події підготовки ---
-
-    void OnPreparedBubble(VideoPlayer source)
-    {
-        source.prepareCompleted -= OnPreparedBubble;
-
-        // Гарантовано перемотати на старт і примусово видати перший кадр без мигу
-        source.frame = 0;
-        source.Play();
-        source.Pause(); // тик-пауза змушує відрендерити кадр у RenderTexture/матеріал
-        // тепер можна показувати візуал і стартувати
-        ShowVisual(bubbleRenderer, bubbleImage, bubbleCanvas, fadeInDuration);
-        source.Play();
-    }
-
-    void OnPreparedWave(VideoPlayer source)
-    {
-        source.prepareCompleted -= OnPreparedWave;
-        source.frame = 0;
-        source.Play();
-        source.Pause();
-        ShowVisual(waveRenderer, waveImage, waveCanvas, fadeInDuration);
-        source.Play();
-    }
-
-    // --- Кінець ролика (керуємо життєвим циклом об’єкта з пулу) ---
-
-    void OnBubbleEnded(VideoPlayer vp)
-    {
-        vpBubble.loopPointReached -= OnBubbleEnded;
-
-        // Повертаємо об’єкт у пул
-        BubbleFlipbookPool.Instance.ReturnToPool(this.gameObject);
-
-        // НЕ обнуляємо матеріали/RenderTexture — це і дає "білий спалах".
-        // Лише відв'яжемо кліпи (за бажанням).
-        vpBubble.clip = null;
-        vpWave.clip   = null;
-
-        // На випадок, якщо об’єкт не знищується, — сховати візуали
-        HideVisual(bubbleRenderer, bubbleImage, bubbleCanvas, true);
-        HideVisual(waveRenderer,   waveImage,   waveCanvas,   true);
-    }
-
-    // --- Утиліти для керування видимістю ---
-
-    void HideVisual(Renderer r, RawImage img, CanvasGroup cg, bool instantly)
-    {
-        if (cg)
+        if (string.IsNullOrEmpty(bubbleState) || string.IsNullOrEmpty(waveState))
         {
-            cg.alpha = 0f;
-            cg.interactable = false;
-            cg.blocksRaycasts = false;
+            Debug.LogWarning("BubbleFlipbook: не вдалося підібрати назви станів для аніматорів.");
+            return;
         }
-        else
+
+        PlayState(bubbleAnimator, bubbleState);
+        PlayState(waveAnimator, waveState);
+
+        ShowRenderer(bubbleRenderer, fadeInDuration);
+        ShowRenderer(waveRenderer, fadeInDuration);
+
+        bubbleCoroutine = StartCoroutine(TrackAnimation(bubbleAnimator, bubbleState, currentSession));
+        waveCoroutine = StartCoroutine(TrackAnimation(waveAnimator, waveState, currentSession));
+    }
+
+    void StopActiveCoroutines()
+    {
+        if (bubbleCoroutine != null) StopCoroutine(bubbleCoroutine);
+        if (waveCoroutine != null) StopCoroutine(waveCoroutine);
+        bubbleCoroutine = null;
+        waveCoroutine = null;
+    }
+
+    void PlayState(Animator animator, string stateName)
+    {
+        if (!animator) return;
+        animator.speed = 1f;
+        animator.Play(stateName, 0, 0f);
+        animator.Update(0f);
+    }
+
+    IEnumerator TrackAnimation(Animator animator, string stateName, int sessionId)
+    {
+        if (!animator)
         {
-            if (img) img.enabled = false;
-            if (r)   r.enabled   = false;
+            OnAnimationFinished(sessionId);
+            yield break;
+        }
+
+        float duration = GetClipLength(animator, stateName);
+        if (duration <= 0f)
+        {
+            OnAnimationFinished(sessionId);
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            if (sessionId != playSessionId)
+            {
+                yield break;
+            }
+
+            elapsed += Time.deltaTime * animator.speed;
+            yield return null;
+        }
+
+        OnAnimationFinished(sessionId);
+    }
+
+    float GetClipLength(Animator animator, string stateName)
+    {
+        if (!animator) return 0f;
+
+        var controller = animator.runtimeAnimatorController;
+        if (!controller)
+        {
+            Debug.LogWarning($"BubbleFlipbook: Animator {animator.name} не має runtimeAnimatorController.");
+            return 0f;
+        }
+
+        foreach (var clip in controller.animationClips)
+        {
+            if (clip && clip.name == stateName)
+            {
+                return Mathf.Max(clip.length, 0f);
+            }
+        }
+
+        Debug.LogWarning($"BubbleFlipbook: не знайшов AnimationClip \"{stateName}\" у контролері {animator.name}.");
+        return 0f;
+    }
+
+    string GetRandomStateName(string prefix, Vector2Int range)
+    {
+        if (range.x > range.y)
+        {
+            Debug.LogWarning($"BubbleFlipbook: хибний діапазон для префікса {prefix} ({range.x}-{range.y}).");
+            return null;
+        }
+
+        int randomIndex = Random.Range(range.x, range.y + 1);
+        return $"{prefix}{randomIndex}";
+    }
+
+    void OnAnimationFinished(int sessionId)
+    {
+        if (sessionId != playSessionId) return;
+
+        finishedCount++;
+        if (finishedCount >= 2)
+        {
+            HideRendererImmediate(bubbleRenderer);
+            HideRendererImmediate(waveRenderer);
+
+            BubbleFlipbookPool.Instance.ReturnToPool(this.gameObject);
         }
     }
 
-    void ShowVisual(Renderer r, RawImage img, CanvasGroup cg, float fade)
+    void HideRendererImmediate(SpriteRenderer sr)
     {
-        if (cg)
-        {
-            // простий Lerp без сторонніх бібліотек
-            StartCoroutine(FadeCanvas(cg, fade <= 0f ? 0.0001f : fade));
-        }
-        else
-        {
-            if (img) img.enabled = true;
-            if (r)   r.enabled   = true;
-        }
+        if (!sr) return;
+        var c = sr.color;
+        c.a = 0f;
+        sr.color = c;
+        sr.enabled = true;
     }
 
-    System.Collections.IEnumerator FadeCanvas(CanvasGroup cg, float duration)
+    void ShowRenderer(SpriteRenderer sr, float duration)
     {
-        cg.interactable = true;
-        cg.blocksRaycasts = true;
+        if (!sr) return;
+        sr.enabled = true;
+        StartCoroutine(FadeSprite(sr, 1f, Mathf.Max(0.0001f, duration)));
+    }
 
-        if (duration <= 0.001f) { cg.alpha = 1f; yield break; }
-
+    IEnumerator FadeSprite(SpriteRenderer sr, float targetAlpha, float duration)
+    {
         float t = 0f;
+        var c = sr.color;
+        float startA = c.a;
+
         while (t < duration)
         {
             t += Time.deltaTime;
-            cg.alpha = Mathf.Clamp01(t / duration);
+            float a = Mathf.Lerp(startA, targetAlpha, t / duration);
+            sr.color = new Color(c.r, c.g, c.b, a);
             yield return null;
         }
-        cg.alpha = 1f;
+        sr.color = new Color(c.r, c.g, c.b, targetAlpha);
     }
 }
