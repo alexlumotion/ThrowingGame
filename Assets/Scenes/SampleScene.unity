@@ -1228,8 +1228,8 @@ MonoBehaviour:
   activateDisplaysOnStart: 1
   retargetAllCameras: 1
   fullscreen: 1
-  fullscreenMode: 0
-  fixedResolution: {x: 1920, y: 1080}
+  fullscreenMode: 3
+  fixedResolution: {x: 1600, y: 900}
   applyOnStart: 1
   moveMainWindowToDisplay: 1
 --- !u!1 &1862979394

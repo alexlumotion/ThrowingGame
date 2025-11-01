@@ -1,18 +1,22 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Video;
 
 public class ShellFlipbook : MonoBehaviour
 {
-    [Header("Players")]
-    public VideoPlayer vpWave;
-    public VideoPlayer vpShell;
-    public VideoPlayer vpBubble;
+    [Header("Animators")]
+    public Animator waveAnimator;
+    public Animator shellAnimator;
+    public Animator bubbleAnimator;
 
-    [Header("Clips")]
-    public VideoClip[] waveVideos;
-    public VideoClip[] shellVideos;
-    public VideoClip[] bubbleVideos;
+    [Header("State Name Prefixes")]
+    public string waveStatePrefix = "wave_";
+    public string shellStatePrefix = "shell_";
+    public string bubbleStatePrefix = "bubble_";
+
+    [Header("Inclusive State Ranges")]
+    public Vector2Int waveStateRange = new Vector2Int(1, 12);
+    public Vector2Int shellStateRange = new Vector2Int(1, 11);
+    public Vector2Int bubbleStateRange = new Vector2Int(1, 6);
 
     [Header("Sprite Renderers (кожен плеєр рендерить у свій матеріал/RT)")]
     public SpriteRenderer waveRenderer;
@@ -26,15 +30,15 @@ public class ShellFlipbook : MonoBehaviour
     public bool start = false;
 
     // внутрішній стан
-    int preparedCount = 0;
     int finishedCount = 0;
+    int playSessionId = 0;
+
+    Coroutine waveCoroutine;
+    Coroutine shellCoroutine;
+    Coroutine bubbleCoroutine;
 
     void Awake()
     {
-        SetupPlayer(vpWave);
-        SetupPlayer(vpShell);
-        SetupPlayer(vpBubble);
-
         // стартово сховати всі візуали
         HideRendererImmediate(waveRenderer);
         HideRendererImmediate(shellRenderer);
@@ -50,34 +54,20 @@ public class ShellFlipbook : MonoBehaviour
         }
     }
 
-    void SetupPlayer(VideoPlayer vp)
-    {
-        if (!vp) return;
-        vp.playOnAwake = false;
-        vp.isLooping = false;
-        vp.waitForFirstFrame = true; // не показувати, поки перший кадр не готовий
-    }
-
     public void PlayOnce()
     {
-        if (!vpWave || !vpShell || !vpBubble ||
-            waveVideos == null || shellVideos == null || bubbleVideos == null ||
-            waveVideos.Length == 0 || shellVideos.Length == 0 || bubbleVideos.Length == 0)
+        if (!waveAnimator || !shellAnimator || !bubbleAnimator)
         {
-            Debug.LogWarning("ShellFlipbook: не налаштовані VideoPlayer або масиви кліпів.");
+            Debug.LogWarning("ShellFlipbook: не налаштовані Animator.");
             return;
         }
 
-        // скинути попередні підписки/стан
-        vpWave.prepareCompleted  -= OnPrepared;
-        vpShell.prepareCompleted -= OnPrepared;
-        vpBubble.prepareCompleted-= OnPrepared;
+        // інкрементуємо сесію, щоб старі корутини ігнорувалися
+        playSessionId++;
+        int currentSession = playSessionId;
 
-        vpWave.loopPointReached  -= OnOneFinished;
-        vpShell.loopPointReached -= OnOneFinished;
-        vpBubble.loopPointReached-= OnOneFinished;
+        StopActiveCoroutines();
 
-        preparedCount = 0;
         finishedCount = 0;
 
         // сховати візуал, щоб не було мигу між кліпами
@@ -85,69 +75,125 @@ public class ShellFlipbook : MonoBehaviour
         HideRendererImmediate(shellRenderer);
         HideRendererImmediate(bubbleRenderer);
 
-        // зупинити, призначити випадкові кліпи, підписатись і підготувати
-        vpWave.Stop();
-        vpShell.Stop();
-        vpBubble.Stop();
+        string waveState = GetRandomStateName(waveStatePrefix, waveStateRange);
+        string shellState = GetRandomStateName(shellStatePrefix, shellStateRange);
+        string bubbleState = GetRandomStateName(bubbleStatePrefix, bubbleStateRange);
 
-        vpWave.clip  = waveVideos[Random.Range(0, waveVideos.Length)];
-        vpShell.clip = shellVideos[Random.Range(0, shellVideos.Length)];
-        vpBubble.clip= bubbleVideos[Random.Range(0, bubbleVideos.Length)];
-
-        vpWave.prepareCompleted  += OnPrepared;
-        vpShell.prepareCompleted += OnPrepared;
-        vpBubble.prepareCompleted+= OnPrepared;
-
-        vpWave.Prepare();
-        vpShell.Prepare();
-        vpBubble.Prepare();
-
-        // фініш-трекінг — завершення всіх трьох
-        vpWave.loopPointReached  += OnOneFinished;
-        vpShell.loopPointReached += OnOneFinished;
-        vpBubble.loopPointReached+= OnOneFinished;
-    }
-
-    // Викликається для кожного плеєра, коли він підготовлений
-    void OnPrepared(VideoPlayer vp)
-    {
-        preparedCount++;
-
-        // Коли готові всі три — одночасний старт
-        if (preparedCount >= 3)
+        if (string.IsNullOrEmpty(waveState) ||
+            string.IsNullOrEmpty(shellState) ||
+            string.IsNullOrEmpty(bubbleState))
         {
-            // Примусово відрендерити перший кадр на всіх
-            PrimeFirstFrame(vpWave);
-            PrimeFirstFrame(vpShell);
-            PrimeFirstFrame(vpBubble);
-
-            // Плавно показати всі три (без мигу) і запустити
-            ShowRenderer(waveRenderer, fadeInDuration);
-            ShowRenderer(shellRenderer, fadeInDuration);
-            ShowRenderer(bubbleRenderer, fadeInDuration);
-
-            vpWave.Play();
-            vpShell.Play();
-            vpBubble.Play();
+            Debug.LogWarning("ShellFlipbook: не вдалося підібрати назви станів для аніматорів.");
+            return;
         }
+
+        // миттєво намалювати перший кадр кожної анімації
+        PlayState(waveAnimator, waveState);
+        PlayState(shellAnimator, shellState);
+        PlayState(bubbleAnimator, bubbleState);
+
+        // Плавно показати всі три (без мигу) і запустити трекінг
+        ShowRenderer(waveRenderer, fadeInDuration);
+        ShowRenderer(shellRenderer, fadeInDuration);
+        ShowRenderer(bubbleRenderer, fadeInDuration);
+
+        waveCoroutine = StartCoroutine(TrackAnimation(waveAnimator, waveState, currentSession));
+        shellCoroutine = StartCoroutine(TrackAnimation(shellAnimator, shellState, currentSession));
+        bubbleCoroutine = StartCoroutine(TrackAnimation(bubbleAnimator, bubbleState, currentSession));
     }
 
-    // допоміжна — примусово намалювати перший кадр у RenderTexture/матеріал
-    void PrimeFirstFrame(VideoPlayer vp)
+    void StopActiveCoroutines()
     {
-        if (!vp) return;
-        vp.frame = 0;
-        vp.Play();
-        vp.Pause();
+        if (waveCoroutine != null) StopCoroutine(waveCoroutine);
+        if (shellCoroutine != null) StopCoroutine(shellCoroutine);
+        if (bubbleCoroutine != null) StopCoroutine(bubbleCoroutine);
+
+        waveCoroutine = null;
+        shellCoroutine = null;
+        bubbleCoroutine = null;
     }
 
-    // Рахуємо завершення кожного плеєра; коли всі 3 — повертаємо у пул
-    void OnOneFinished(VideoPlayer vp)
+    void PlayState(Animator animator, string stateName)
     {
+        if (!animator) return;
+        animator.speed = 1f;
+        animator.Play(stateName, 0, 0f);
+        animator.Update(0f); // змусити застосувати перший кадр
+    }
+
+    IEnumerator TrackAnimation(Animator animator, string stateName, int sessionId)
+    {
+        if (!animator)
+        {
+            OnAnimationFinished(sessionId);
+            yield break;
+        }
+
+        float duration = GetClipLength(animator, stateName);
+        if (duration <= 0f)
+        {
+            OnAnimationFinished(sessionId);
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            if (sessionId != playSessionId)
+            {
+                yield break; // нова сесія вже стартувала
+            }
+
+            elapsed += Time.deltaTime * animator.speed;
+            yield return null;
+        }
+
+        OnAnimationFinished(sessionId);
+    }
+
+    float GetClipLength(Animator animator, string stateName)
+    {
+        if (!animator) return 0f;
+
+        var controller = animator.runtimeAnimatorController;
+        if (!controller)
+        {
+            Debug.LogWarning($"ShellFlipbook: Animator {animator.name} не має runtimeAnimatorController.");
+            return 0f;
+        }
+
+        foreach (var clip in controller.animationClips)
+        {
+            if (clip && clip.name == stateName)
+            {
+                return Mathf.Max(clip.length, 0f);
+            }
+        }
+
+        Debug.LogWarning($"ShellFlipbook: не знайшов AnimationClip \"{stateName}\" у контролері {animator.name}.");
+        return 0f;
+    }
+
+    string GetRandomStateName(string prefix, Vector2Int range)
+    {
+        if (range.x > range.y)
+        {
+            Debug.LogWarning($"ShellFlipbook: хибний діапазон для префікса {prefix} ({range.x}-{range.y}).");
+            return null;
+        }
+
+        int randomIndex = Random.Range(range.x, range.y + 1);
+        return $"{prefix}{randomIndex}";
+    }
+
+    // Рахуємо завершення кожного аніматора; коли всі 3 — повертаємо у пул
+    void OnAnimationFinished(int sessionId)
+    {
+        if (sessionId != playSessionId) return;
+
         finishedCount++;
         if (finishedCount >= 3)
         {
-            // опційно сховати перед поверненням у пул
             HideRendererImmediate(waveRenderer);
             HideRendererImmediate(shellRenderer);
             HideRendererImmediate(bubbleRenderer);
