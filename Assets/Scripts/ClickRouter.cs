@@ -20,16 +20,22 @@ public class ClickRouter : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             HandleClick(Input.mousePosition);
-        }           
+        }
+    }
+
+    /// <summary>
+    /// Приймає готову координату екрану (в пікселях) та запускає стандартну логіку кліку.
+    /// </summary>
+    public void RouteScreenPoint(Vector2 screenPosition)
+    {
+        HandleClick(new Vector3(screenPosition.x, screenPosition.y, 0f));
     }
 
     void HandleClick(Vector3 screenPos)
     {
-
         // 1) ігноруємо кліки по UI
         if (ignoreUI && EventSystem.current && EventSystem.current.IsPointerOverGameObject())
             return;
-
 
         // 2) рейкаст у сцену
         Ray ray = cam.ScreenPointToRay(screenPos);
