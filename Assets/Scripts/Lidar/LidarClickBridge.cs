@@ -75,8 +75,8 @@ public class LidarClickBridge : MonoBehaviour
         if (!string.IsNullOrEmpty(acceptedEventType) && !string.Equals(payload.@event, acceptedEventType, StringComparison.OrdinalIgnoreCase))
             return;
 
-        float normalizedY = Mathf.Clamp01(payload.y + 0.5f); // -0.5..0.5 -> 0..1 (X on screen)
-        float normalizedX = Mathf.Clamp01(payload.x);         // 0..1 -> 0..1 (Y on screen)
+        float normalizedY = Mathf.Clamp01(0.5f - payload.y); // y: +0.5 -> 0 (left), -0.5 -> 1 (right)
+        float normalizedX = Mathf.Clamp01(1f - payload.x);   // x: 0 -> 1 (top), 1 -> 0 (bottom)
 
         float screenX = normalizedY * cam.pixelWidth;
         float screenY = normalizedX * cam.pixelHeight;
