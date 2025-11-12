@@ -187,6 +187,7 @@ public class FishFlipbookController : MonoBehaviour
     {
         if (player == null) return;
         _lastPlayedSetId = setId;
+        Debug.Log($"[FishFlipbookController] Now playing '{ResolveSetName(setId)}'");
 
         player.setId = setId;
         player.loop = false;   // запобігаємо зацикленню ролика
@@ -198,6 +199,13 @@ public class FishFlipbookController : MonoBehaviour
 
     private Direction Opposite(Direction d)
         => (d == Direction.LeftToRight) ? Direction.RightToLeft : Direction.LeftToRight;
+
+    private string ResolveSetName(int setId)
+    {
+        var set = player?.manager?.GetSet(setId);
+        if (set == null) return $"setId={setId}";
+        return string.IsNullOrEmpty(set.name) ? $"setId={setId}" : set.name;
+    }
 
     // ===== Interlude timer =====
     private void StartInterludeTimerIfNeeded()

@@ -398,13 +398,14 @@ GameObject:
   - component: {fileID: 575203501}
   - component: {fileID: 575203500}
   - component: {fileID: 575203499}
+  - component: {fileID: 575203502}
   m_Layer: 7
   m_Name: VideoQuad_Fishes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &575203499
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -412,7 +413,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 575203498}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 0
@@ -470,6 +471,78 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1862979395}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &575203502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 575203498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d13357657890d4212885ed0c75565e44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  manager: {fileID: 2135739051}
+  setId: 0
+  fps: 30
+  framesPerChunk: 60
+  loop: 1
+  autoLoadOnEnable: 0
+  autoPlayOnEnable: 0
+  debugTriggerPlay: 0
+  debugTriggerPause: 0
+  debugTriggerStop: 0
+  initialLoadDelayMinMs: 0
+  initialLoadDelayMaxMs: 0
+  preloadThresholdFrames: 15
+  textureArrayProperty: _FlipbookTex
+  frameIndexProperty: _Frame
+  placeholderArray: {fileID: 0}
+  autoCreateTransparentPlaceholder: 1
+  OnPrepareCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnFirstFrameReady:
+    m_PersistentCalls:
+      m_Calls: []
+  OnStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnChunkChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnFrameChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnNextChunkPreloadStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnNextChunkPreloadReady:
+    m_PersistentCalls:
+      m_Calls: []
+  OnNextChunkPreloadFailed:
+    m_PersistentCalls:
+      m_Calls: []
+  OnLoop:
+    m_PersistentCalls:
+      m_Calls: []
+  OnFinished:
+    m_PersistentCalls:
+      m_Calls: []
+  OnError:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlayEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPauseEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnStopEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  emitOnEveryFrame: 0
 --- !u!1 &683976072
 GameObject:
   m_ObjectHideFlags: 0
@@ -686,6 +759,8 @@ Transform:
   - {fileID: 430196006}
   - {fileID: 1461369837}
   - {fileID: 944708688}
+  - {fileID: 1409954777}
+  - {fileID: 2135739050}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &909213373
@@ -916,7 +991,6 @@ GameObject:
   m_Component:
   - component: {fileID: 976443200}
   - component: {fileID: 976443202}
-  - component: {fileID: 976443201}
   m_Layer: 7
   m_Name: SpriteRenderer_Bubbles
   m_TagString: Untagged
@@ -939,27 +1013,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1862979395}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &976443201
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 976443199}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 49d31eeffe7b84ad784449170244d1a4, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!212 &976443202
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1240,6 +1293,74 @@ MonoBehaviour:
   shapePrefabs:
   - {fileID: 6409697693250095587, guid: 4aaec674f55fc424596ceae4babc8aa3, type: 3}
   poolSizePerType: 10
+--- !u!1 &1409954776
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1409954777}
+  - component: {fileID: 1409954778}
+  m_Layer: 0
+  m_Name: FishFlipbookController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1409954777
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409954776}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 762901946}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1409954778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409954776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fcd1f6acf83743558284de42597bf47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 575203502}
+  leftToRightSets: 000000000100000002000000030000000400000005000000
+  rightToLeftSets: 060000000700000008000000090000000a0000000b000000
+  interludeSetId: 12
+  autoPlayOnStart: 1
+  startDirection: 0
+  interludeIntervalSeconds: 10
+  avoidImmediateRepeat: 1
+  alternateDirections: 1
+  OnClipStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnClipFinished:
+    m_PersistentCalls:
+      m_Calls: []
+  OnInterludeStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnInterludeEnded:
+    m_PersistentCalls:
+      m_Calls: []
+  OnError:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1461369836
 GameObject:
   m_ObjectHideFlags: 0
@@ -1284,7 +1405,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fd656563d52649f8aa920de22d4dbb3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 1707968217}
+  animator: {fileID: 0}
   baseController: {fileID: 9100000, guid: 9a581732b5b3f40249bc622cec27fb7e, type: 2}
   placeholderClip: {fileID: 7400000, guid: 0e2d62bd137374df4ba7f7d6880adf9b, type: 2}
   leftToRightOverrides:
@@ -1458,7 +1579,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1707968216}
   - component: {fileID: 1707968218}
-  - component: {fileID: 1707968217}
   m_Layer: 7
   m_Name: SpriteRenderer_Fishes
   m_TagString: Untagged
@@ -1481,27 +1601,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1862979395}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &1707968217
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1707968215}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 9a581732b5b3f40249bc622cec27fb7e, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!212 &1707968218
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1768,6 +1867,133 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8535014212300209870, guid: 623d9df49772b48a1975982a9a259422, type: 3}
   m_PrefabInstance: {fileID: 1983532314}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2135739049
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2135739050}
+  - component: {fileID: 2135739051}
+  m_Layer: 0
+  m_Name: FlipbookAssetManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2135739050
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2135739049}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 762901946}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2135739051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2135739049}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc318a70fc4604b019e25a851fc36ff3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sets:
+  - name: Fish_1
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_01_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_2
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_02_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 12
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_3
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_03_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_4
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_04_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_5
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_05_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_6
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_06_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_7
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_07_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_8
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_08_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_9
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_09_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_10
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_10_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 12
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_11
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_11_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_12
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_12_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 11
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  - name: Fish_00
+    addressTemplate: Assets/FlipbookChunks/Fishes/fish_chunk{0:00}_2048x1024_DXT5.asset
+    totalChunks: 15
+    fps: 30
+    framesPerChunk: 60
+    startAtZero: 1
+  debug:
+    autoLogIntervalSec: 0
+    detailed: 0
+    trackOwners: 0
 --- !u!1 &2146450293
 GameObject:
   m_ObjectHideFlags: 0
