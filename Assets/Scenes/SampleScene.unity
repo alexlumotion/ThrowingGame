@@ -654,7 +654,7 @@ MonoBehaviour:
   preloadThresholdFrames: 15
   textureArrayProperty: _FlipbookTex
   frameIndexProperty: _Frame
-  placeholderArray: {fileID: 0}
+  placeholderArray: {fileID: 18700000, guid: 05a986c8ed9f146d18b792437367fd3a, type: 2}
   autoCreateTransparentPlaceholder: 1
   OnPrepareCompleted:
     m_PersistentCalls:
